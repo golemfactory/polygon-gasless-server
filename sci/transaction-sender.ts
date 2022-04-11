@@ -2,7 +2,7 @@ import { PolygonNetwork, utils, Web3 } from '../sci.ts';
 import { delay, log } from '../deps.ts';
 
 const GAS_LIMIT = 800 * 1000;
-const logger = log.getLogger();
+const logger = log.getLogger('sci');
 
 export type Transaction = {
     to: string;

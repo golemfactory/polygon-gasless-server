@@ -2,11 +2,11 @@ import { log } from '../deps.ts';
 import { Context, Router, Status } from '../webapps.ts';
 import { z } from '../deps.ts';
 import { utils } from '../sci.ts';
-import web3, { config } from '../config.ts';
+import web3, { config, gracePeriodMs } from '../config.ts';
 import { contract } from '../sci/golem-polygon-contract.ts';
 import { TransactionSender } from '../sci/transaction-sender.ts';
 import { decodeTransfer } from '../sci/transfer-tx-decoder.ts';
-const logger = log.getLogger();
+const logger = log.getLogger('webapps::forward');
 const HexString = () => z.string().refine(utils.isHex, 'expected hex string');
 const Address = () => z.string().refine(utils.isAddress, 'expected eth address');
 
@@ -28,6 +28,8 @@ const glm = contract(web3, '0x0b220b82f3ea3b7f6d9a1d8ab58930c064a2b5bf');
 
 sender.start();
 
+const pendingSenders = new Set<string>();
+
 export default new Router()
     .post('/transfer', async (ctx: Context) => {
         try {
@@ -46,11 +48,38 @@ export default new Router()
 
             const data = glm.methods.executeMetaTransaction(input.sender, input.abiFunctionCall, input.r, input.s, input.v).encodeABI();
 
-            const txId = await sender.sendTx({ to: glm.options.address, data });
+            if (pendingSenders.has(input.sender)) {
+                ctx.response.status = 429;
+                ctx.response.body = {
+                    'message': 'processing concurrent transaction',
+                };
+                return;
+            }
+            try {
+                pendingSenders.add(input.sender);
+                const now = new Date().getTime();
+                const storageKey = `sender.${input.sender}`;
+                if (gracePeriodMs) {
+                    const prev = localStorage.getItem(storageKey);
+                    if (prev && (now - parseInt(prev)) > gracePeriodMs) {
+                        const retryAfter = new Date(parseInt(prev) + gracePeriodMs);
+                        ctx.response.status = 429;
+                        ctx.response.headers.set('Retry-After', retryAfter.toISOString());
+                        ctx.response.body = {
+                            'message': 'Grace period did not pass for this address',
+                        };
+                        return;
+                    }
+                }
 
-            ctx.response.type = 'json';
+                const txId = await sender.sendTx({ to: glm.options.address, data });
 
-            ctx.response.body = { txId };
+                localStorage.setItem(storageKey, now.toString());
+                ctx.response.type = 'json';
+                ctx.response.body = { txId };
+            } finally {
+                pendingSenders.delete(input.sender);
+            }
         } catch (e) {
             if (e instanceof z.ZodError) {
                 ctx.response.status = 400;
@@ -84,5 +113,6 @@ export default new Router()
             gas,
             queueSize,
             contractAddress,
+            gracePeriodMs,
         };
     });

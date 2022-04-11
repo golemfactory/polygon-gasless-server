@@ -8,7 +8,6 @@ const web3 = setupWeb3Api('');
 Deno.test('decodeTransfer', () => {
     const glm = contract(web3);
     const bytes = glm.methods.transfer('0x4DCeBf483fA7f31FfCee6e4EAffC1D78308Ec2cD', utils.toWei('5.5')).encodeABI();
-    console.log('bytes', bytes);
     const data = decodeTransfer(bytes);
     assertEquals(data?.recipient, '0x4DCeBf483fA7f31FfCee6e4EAffC1D78308Ec2cD');
     assertEquals(data?.amount, utils.toWei('5.5'));
