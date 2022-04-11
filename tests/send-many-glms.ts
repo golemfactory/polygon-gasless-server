@@ -1,7 +1,16 @@
 import { TransactionSender } from '../sci/transaction-sender.ts';
-import { dotenv } from '../deps.ts';
+import { dotenv, log } from '../deps.ts';
 import { setupWeb3Api } from '../sci.ts';
 import { contract } from '../sci/golem-polygon-contract.ts';
+
+await log.setup({
+    handlers: {
+        default: new log.handlers.ConsoleHandler('DEBUG'),
+    },
+    loggers: {
+        sci: { level: 'DEBUG', handlers: ['default'] },
+    },
+});
 
 await dotenv.config({ export: true });
 
@@ -19,21 +28,29 @@ const data = glm.methods.transfer('0x226aC45F7145C73331B721F3229AFdBEC470D724', 
 
 sender.start();
 console.log(`started sender on ${sender.address}`);
-for (const _ of [1, 2, 3]) {
-    const txId = await sender.sendTx({
-        to: '0x0B220b82F3eA3B7F6d9A1D8ab58930C064A2b5Bf',
-        data,
-    });
-    console.log(`tx=${txId}`);
+try {
+    for (const _ of [1, 2, 3]) {
+        const txId = await sender.sendTx({
+            to: '0x0B220b82F3eA3B7F6d9A1D8ab58930C064A2b5Bf',
+            data,
+        });
+        console.log(`tx=${txId}`);
+    }
+} catch (e) {
+    console.error(e);
 }
 
-const result = await Promise.all([1, 2, 3].map((_) =>
-    sender.sendTx({
-        to: '0x0B220b82F3eA3B7F6d9A1D8ab58930C064A2b5Bf',
-        data,
-    })
-));
+try {
+    const result = await Promise.all([1, 2, 3].map((_) =>
+        sender.sendTx({
+            to: '0x0B220b82F3eA3B7F6d9A1D8ab58930C064A2b5Bf',
+            data,
+        })
+    ));
 
-console.log('r=', result);
+    console.log('r=', result);
+} catch (e) {
+    console.error(e);
+}
 
 await sender.stop();

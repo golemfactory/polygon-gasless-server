@@ -57,6 +57,7 @@ export const config = {
     secret: await getEnv('ERC20_PRIVATE_KEY', { required: true }),
     rpc: await getEnv('WEB3_RPC') || 'https://polygon-rpc.com/',
     contractAddress: await getEnv('ERC20_CONTRACT_ADDRESS'),
+    gasPrice: await getEnv('ERC20_GAS_PRICE') || '31.1',
 };
 
 export const port = await getIntEnv('BACKEND_SERVICE_PORT') || 8000;
