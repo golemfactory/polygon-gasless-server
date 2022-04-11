@@ -1,9 +1,12 @@
+import { log } from '../deps.ts';
 import { Context, Router, Status } from '../webapps.ts';
 import { z } from '../deps.ts';
 import { utils } from '../sci.ts';
 import web3, { config } from '../config.ts';
+import { contract } from '../sci/golem-polygon-contract.ts';
 import { TransactionSender } from '../sci/transaction-sender.ts';
-
+import { decodeTransfer } from '../sci/transfer-tx-decoder.ts';
+const logger = log.getLogger();
 const HexString = () => z.string().refine(utils.isHex, 'expected hex string');
 const Address = () => z.string().refine(utils.isAddress, 'expected eth address');
 
@@ -17,13 +20,37 @@ const ForwardRequest = z.object({
 });
 
 const sender = new TransactionSender(web3, config.secret!);
+/*
+  Mainnet = "0x0b220b82f3ea3b7f6d9a1d8ab58930c064a2b5bf";
+  Mumbai = "0x2036807B0B3aaf5b1858EE822D0e111fDdac7018";
+*/
+const glm = contract(web3, '0x0b220b82f3ea3b7f6d9a1d8ab58930c064a2b5bf');
+
+sender.start();
 
 export default new Router()
-    .post('/', async (ctx: Context) => {
+    .post('/transfer', async (ctx: Context) => {
         try {
             const input = ForwardRequest.parse(await ctx.request.body({ type: 'json' }).value);
+            // checking if this is transfer
+            const decoded = decodeTransfer(input.abiFunctionCall);
+            if (!decoded) {
+                ctx.response.status = 400;
+                ctx.response.body = {
+                    message: 'unable to decode transaction',
+                };
+                return;
+            }
+            logger.info(() => `Forwarding transfer from ${input.sender} to ${decoded.recipient} of ${utils.fromWei(decoded.amount)}`);
+            logger.debug('input', input);
+
+            const data = glm.methods.executeMetaTransaction(input.sender, input.abiFunctionCall, input.r, input.s, input.v).encodeABI();
+
+            const txId = await sender.sendTx({ to: glm.options.address, data });
+
             ctx.response.type = 'json';
-            ctx.response.body = input;
+
+            ctx.response.body = { txId };
         } catch (e) {
             if (e instanceof z.ZodError) {
                 ctx.response.status = 400;

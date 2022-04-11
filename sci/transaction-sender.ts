@@ -112,7 +112,7 @@ export class TransactionSender {
         }
         try {
             this._lock = true;
-            logger.info('enter');
+            logger.debug('enter');
             const web3 = this.web3;
 
             if (this.pendingTransaction) {
@@ -192,7 +192,7 @@ export class TransactionSender {
             }
         } finally {
             this._lock = false;
-            logger.info('left');
+            logger.debug('left');
         }
     }
 }

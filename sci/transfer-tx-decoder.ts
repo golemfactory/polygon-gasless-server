@@ -17,10 +17,17 @@ export function decodeTransfer(hexBytes: string): TransferArgs | undefined {
     const bytes = utils.hexToBytes(hexBytes);
     const functionSignature = utils.bytesToHex(bytes.splice(0, 4));
     if (functionSignature === TRANSFER_SIGNATURE) {
-        const { '0': recipient, '1': amount } = abi.decodeParameters(['address', 'uint256'], utils.bytesToHex(bytes));
-        return {
-            recipient,
-            amount,
-        };
+        try {
+            const { '0': recipient, '1': amount } = abi.decodeParameters(['address', 'uint256'], utils.bytesToHex(bytes));
+            return {
+                recipient,
+                amount,
+            };
+        } catch (e) {
+            if (e instanceof Error) {
+                return undefined;
+            }
+            throw e;
+        }
     }
 }
