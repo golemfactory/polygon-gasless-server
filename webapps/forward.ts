@@ -6,7 +6,7 @@ import web3, { config, gracePeriodMs } from '../config.ts';
 import { contract } from '../sci/golem-polygon-contract.ts';
 import { TransactionSender } from '../sci/transaction-sender.ts';
 import { decodeTransfer } from '../sci/transfer-tx-decoder.ts';
-const logger = log.getLogger('webapps::forward');
+
 const HexString = () => z.string().refine(utils.isHex, 'expected hex string');
 const Address = () => z.string().refine(utils.isAddress, 'expected eth address');
 
@@ -32,6 +32,7 @@ const pendingSenders = new Set<string>();
 
 export default new Router()
     .post('/transfer', async (ctx: Context) => {
+        const logger = log.getLogger('webapps');
         try {
             const input = ForwardRequest.parse(await ctx.request.body({ type: 'json' }).value);
             // checking if this is transfer
@@ -44,7 +45,7 @@ export default new Router()
                 return;
             }
             logger.info(() => `Forwarding transfer from ${input.sender} to ${decoded.recipient} of ${utils.fromWei(decoded.amount)}`);
-            logger.debug('input', input);
+            logger.debug(() => `input=${JSON.stringify(input)}`);
 
             const data = glm.methods.executeMetaTransaction(input.sender, input.abiFunctionCall, input.r, input.s, input.v).encodeABI();
 
@@ -61,10 +62,11 @@ export default new Router()
                 const storageKey = `sender.${input.sender}`;
                 if (gracePeriodMs) {
                     const prev = localStorage.getItem(storageKey);
-                    if (prev && (now - parseInt(prev)) > gracePeriodMs) {
+                    logger.debug(() => `check gracePeriodMs=${gracePeriodMs}, for ${storageKey}, prev=${prev}`);
+                    if (prev && (now - parseInt(prev)) < gracePeriodMs) {
                         const retryAfter = new Date(parseInt(prev) + gracePeriodMs);
                         ctx.response.status = 429;
-                        ctx.response.headers.set('Retry-After', retryAfter.toISOString());
+                        ctx.response.headers.set('Retry-After', retryAfter.toUTCString());
                         ctx.response.body = {
                             'message': 'Grace period did not pass for this address',
                         };

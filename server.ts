@@ -1,15 +1,22 @@
-import logger from 'https://deno.land/x/oak_logger/mod.ts';
-import webapps, { Application } from './webapps.ts';
 import { log } from './deps.ts';
 
-log.setup({
+await log.setup({
+    handlers: {
+        console: new log.handlers.ConsoleHandler('DEBUG', { formatter: '{levelName} - {msg}' }),
+    },
     loggers: {
-        default: { level: 'INFO' },
-        'webapps::forward': { level: 'INFO' },
-        'sci': { level: 'DEBUG' },
+        default: { level: 'INFO', handlers: ['console'] },
+        webapps: { level: 'DEBUG', handlers: ['console'] },
+        sci: { level: 'DEBUG', handlers: ['console'] },
     },
 });
+log.info('started');
+if (localStorage.length > 0) {
+    log.info(`${localStorage.length} keys stored`);
+}
 
+import logger from 'https://deno.land/x/oak_logger/mod.ts';
+import webapps, { Application } from './webapps.ts';
 import * as config from './config.ts';
 
 const app = new Application()
