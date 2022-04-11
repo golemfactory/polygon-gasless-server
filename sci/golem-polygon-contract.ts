@@ -1,14 +1,14 @@
 import contractData from './golem-polygon-contract.json' assert {
     type: 'json',
 };
-import { Web3 } from '../sci.ts';
+import { AbiItem, Contract, Web3 } from '../sci.ts';
 import { log } from '../deps.ts';
 
-const logger = log.getLogger();
+const _logger = log.getLogger();
 
-export function contract(web3: any, address: string) {
+export function contract(web3: Web3, address?: string): Contract {
     return new web3.eth.Contract(
-        contractData.abi,
+        contractData!.abi as AbiItem[],
         address,
     );
 }
