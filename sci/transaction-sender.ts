@@ -148,7 +148,7 @@ export class TransactionSender {
             if (!queuedTransaction) {
                 return;
             }
-            const { transaction, callback } = queuedTransaction;
+            const { transaction, callback, error } = queuedTransaction;
             const gasLimit = transaction.gasLimit || this.web3.utils.toHex(GAS_LIMIT);
             try {
                 const estimatedGas = await web3.eth.estimateGas({
@@ -211,7 +211,7 @@ export class TransactionSender {
                 callback(txId);
             } catch (e) {
                 logger.error(`fatal ${e.message}`, e);
-                callback('xx');
+                error(e);
             }
         } finally {
             this._lock = false;
