@@ -10,7 +10,6 @@ export function setupWeb3Api(providerUrl: string): Web3 {
 }
 
 export type PolygonNetwork = 'mainnet' | 'testnet';
-
 export type Web3 = Web3Type;
 export type AbiItem = web3_utils.AbiItem;
 export type Contract = web3_eth_contract.Contract;

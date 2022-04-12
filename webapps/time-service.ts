@@ -1,4 +1,4 @@
-import { Router } from '../webapps.ts';
+import { Router } from '../deps.ts';
 
 export default new Router()
     .get('/', (ctx) => {

@@ -1,4 +1,4 @@
-import { log } from './deps.ts';
+import { Application, log } from './deps.ts';
 
 await log.setup({
     handlers: {
@@ -16,7 +16,7 @@ if (localStorage.length > 0) {
 }
 
 import logger from 'https://deno.land/x/oak_logger/mod.ts';
-import webapps, { Application } from './webapps.ts';
+import webapps from './webapps.ts';
 import * as config from './config.ts';
 
 const app = new Application()
