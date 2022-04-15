@@ -1,6 +1,6 @@
 import { abi, AbiItem, utils } from '../sci.ts';
 
-type TransferArgs = {
+export type TransferArgs = {
     recipient: string;
     amount: string;
 };

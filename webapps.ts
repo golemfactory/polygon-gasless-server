@@ -1,4 +1,3 @@
-export { Application, Context, Router, Status } from 'https://deno.land/x/oak/mod.ts';
 import { Router } from 'https://deno.land/x/oak/mod.ts';
 
 import timeService from './webapps/time-service.ts';

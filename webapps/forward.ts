@@ -1,11 +1,9 @@
-import { log } from '../deps.ts';
-import { Context, Router, Status } from '../webapps.ts';
+import { Context, log, Router, Status } from '../deps.ts';
 import { z } from '../deps.ts';
 import { utils } from '../sci.ts';
-import web3, { config, gracePeriodMs } from '../config.ts';
-import { contract } from '../sci/golem-polygon-contract.ts';
+import web3, { blockMaxAgeS, config, glm, gracePeriodMs } from '../config.ts';
 import { TransactionSender } from '../sci/transaction-sender.ts';
-import { decodeTransfer } from '../sci/transfer-tx-decoder.ts';
+import { decodeTransfer, TransferArgs } from '../sci/transfer-tx-decoder.ts';
 
 const HexString = () => z.string().refine(utils.isHex, 'expected hex string');
 const Address = () => z.string().refine(utils.isAddress, 'expected eth address');
@@ -17,14 +15,10 @@ const ForwardRequest = z.object({
     sender: Address(),
     abiFunctionCall: HexString(),
     signedRequest: HexString().optional(),
+    blockHash: HexString().optional(),
 });
 
 const sender = new TransactionSender(web3, config.secret!);
-/*
-  Mainnet = "0x0b220b82f3ea3b7f6d9a1d8ab58930c064a2b5bf";
-  Mumbai = "0x2036807B0B3aaf5b1858EE822D0e111fDdac7018";
-*/
-const glm = contract(web3, '0x0b220b82f3ea3b7f6d9a1d8ab58930c064a2b5bf');
 
 sender.start();
 
@@ -33,18 +27,30 @@ const pendingSenders = new Set<string>();
 export default new Router()
     .post('/transfer', async (ctx: Context) => {
         const logger = log.getLogger('webapps');
+
         try {
             const input = ForwardRequest.parse(await ctx.request.body({ type: 'json' }).value);
             // checking if this is transfer
-            const decoded = decodeTransfer(input.abiFunctionCall);
-            if (!decoded) {
+            const decoded_arguments = decodeTransfer(input.abiFunctionCall);
+            if (!decoded_arguments) {
                 ctx.response.status = 400;
                 ctx.response.body = {
                     message: 'unable to decode transaction',
                 };
                 return;
             }
-            logger.info(() => `Forwarding transfer from ${input.sender} to ${decoded.recipient} of ${utils.fromWei(decoded.amount)}`);
+
+            const error_details = await validateTransferMetaTxArguments(input.sender, decoded_arguments, input.blockHash || 'latest');
+
+            if (error_details) {
+                ctx.response.status = 400;
+                ctx.response.body = {
+                    message: error_details,
+                };
+                return;
+            }
+
+            logger.info(() => `Forwarding transfer from ${input.sender} to ${decoded_arguments.recipient} of ${utils.fromWei(decoded_arguments.amount)}`);
             logger.debug(() => `input=${JSON.stringify(input)}`);
 
             const data = glm.methods.executeMetaTransaction(input.sender, input.abiFunctionCall, input.r, input.s, input.v).encodeABI();
@@ -116,5 +122,52 @@ export default new Router()
             queueSize,
             contractAddress,
             gracePeriodMs,
+            blockMaxAgeS,
         };
     });
+
+export async function validateTransferMetaTxArguments(sender: string, transfer_details: TransferArgs, block_hash: string): Promise<string | undefined> {
+    const requested_amount = web3.utils.toBN(transfer_details.amount);
+
+    if (requested_amount.isZero()) {
+        return 'Cannot transfer 0 tokens';
+    }
+
+    let from = sender.toLocaleLowerCase();
+    if (!from.startsWith('0x')) {
+        from = '0x' + from;
+    }
+
+    let to = transfer_details.recipient.toLowerCase();
+    if (!to.startsWith('0x')) {
+        to = '0x' + to;
+    }
+
+    if (from === to) {
+        return 'Sender and recipient addresses must differ';
+    }
+
+    let block;
+    try {
+        block = await web3.eth.getBlock(block_hash);
+    } catch (_error) {
+        return `Block ${block_hash} is too old`;
+    }
+
+    if (!block.nonce) {
+        return `Block ${block_hash} is still pending`;
+    }
+
+    const now_seconds = Date.now() / 1000;
+    if (now_seconds - +block.timestamp > blockMaxAgeS) {
+        return 'Provided block is too old and can contain stale data';
+    }
+
+    const balance = await web3.eth.call({ data: glm.methods.balanceOf(from).encodeABI(), to: glm.options.address }, block_hash).then((res) => web3.utils.toBN(res));
+
+    if (!requested_amount.eq(balance)) {
+        return 'Only full withdrawals are supported';
+    }
+
+    return undefined;
+}

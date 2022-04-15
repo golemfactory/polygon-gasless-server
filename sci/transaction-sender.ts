@@ -57,10 +57,10 @@ export class TransactionSender {
     private _started?: number;
     private readonly logger = log.getLogger('sci');
 
-    constructor(provider: Web3, secretKey: string, network: PolygonNetwork = 'mainnet', gasPrice: string = '31.1') {
+    constructor(provider: Web3, secretKey?: string, network: PolygonNetwork = 'mainnet', gasPrice: string = '31.1') {
         this.web3 = provider;
         this.network = network;
-        const addedAccount = provider.eth.accounts.wallet.add(secretKey);
+        const addedAccount = secretKey ? provider.eth.accounts.wallet.add(secretKey) : provider.eth.accounts.create();
         this.sender = addedAccount.address;
         this.gasPrice = utils.toHex(this.web3.utils.toWei(gasPrice, 'gwei'));
     }
