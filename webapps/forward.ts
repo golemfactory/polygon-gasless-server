@@ -5,7 +5,7 @@ import web3, { blockMaxAgeS, config, glm, gracePeriodMs } from '../config.ts';
 import { TransactionSender } from '../sci/transaction-sender.ts';
 import { decodeTransfer, TransferArgs } from '../sci/transfer-tx-decoder.ts';
 
-const HexString = () => z.string().refine(utils.isHex, 'expected hex string');
+const HexString = () => z.string().refine(utils.isHexStrict, 'expected hex string');
 const Address = () => z.string().refine(utils.isAddress, 'expected eth address');
 
 const ForwardRequest = z.object({
@@ -18,7 +18,7 @@ const ForwardRequest = z.object({
     blockHash: HexString().optional(),
 });
 
-const sender = new TransactionSender(web3, config.secret!);
+const sender = new TransactionSender(web3, config.gasPrice, config.secret!);
 
 sender.start();
 
@@ -30,6 +30,7 @@ export default new Router()
 
         try {
             const input = ForwardRequest.parse(await ctx.request.body({ type: 'json' }).value);
+
             // checking if this is transfer
             const decoded_arguments = decodeTransfer(input.abiFunctionCall);
             if (!decoded_arguments) {
@@ -89,6 +90,8 @@ export default new Router()
                 pendingSenders.delete(input.sender);
             }
         } catch (e) {
+            log.error(`transfer endpoint failed: ${e}`);
+
             if (e instanceof z.ZodError) {
                 ctx.response.status = 400;
                 ctx.response.body = {
@@ -104,7 +107,10 @@ export default new Router()
                 };
                 return;
             }
-            throw e;
+
+            ctx.response.status = 500;
+            ctx.response.body = e.message;
+            return;
         }
     })
     .get('/status', async (ctx: Context) => {

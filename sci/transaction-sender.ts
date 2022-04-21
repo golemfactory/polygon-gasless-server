@@ -57,7 +57,12 @@ export class TransactionSender {
     private _started?: number;
     private readonly logger = log.getLogger('sci');
 
-    constructor(provider: Web3, secretKey?: string, network: PolygonNetwork = 'mainnet', gasPrice: string = '31.1') {
+    constructor(
+        provider: Web3,
+        gasPrice: string,
+        secretKey?: string,
+        network: PolygonNetwork = 'mainnet',
+    ) {
         this.web3 = provider;
         this.network = network;
         const addedAccount = secretKey ? provider.eth.accounts.wallet.add(secretKey) : provider.eth.accounts.create();
@@ -158,7 +163,16 @@ export class TransactionSender {
                 });
 
                 if (estimatedGas > utils.toNumber(gasLimit)) {
-                    queuedTransaction.error(new Error(`failed to process transaction estimatedGas=${utils.fromWei(gasLimit, 'Gwei')}`));
+                    queuedTransaction.error(
+                        new Error(
+                            `failed to process transaction estimatedGas=${
+                                utils.fromWei(
+                                    gasLimit,
+                                    'Gwei',
+                                )
+                            }`,
+                        ),
+                    );
                     setTimeout(() => this._notify(), 100);
                     return;
                 }
@@ -196,11 +210,17 @@ export class TransactionSender {
             };
             try {
                 const txId: string = await new Promise((resolve, reject) => {
-                    this.web3.eth.sendTransaction(txObject)
+                    this.web3.eth
+                        .sendTransaction(txObject)
                         .on('transactionHash', (hash_returned: string) => resolve(hash_returned))
                         .on('error', (err: Error) => {
                             reject(err);
-                        }).then(() => this._notify());
+                        })
+                        .then(() => this._notify())
+                        .catch((_e) => {
+                            // Exception is thrown despite the fact, .on(error) callback is called.
+                            // Consume it here, since proper error handling happens in mentioned callback.
+                        });
                 });
 
                 logger.info(`send tx_id=${txId}`);

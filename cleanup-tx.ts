@@ -1,5 +1,4 @@
 import web3, { config } from './config.ts';
-import { utils } from './sci.ts';
 
 const { secret } = config;
 const addedAccount = web3.eth.accounts.wallet.add(secret!);
@@ -33,7 +32,6 @@ if (nonce !== pendingNonce) {
 
     await web3.eth.sendTransaction(txObject)
         .on('transactionHash', (hash_returned: string) => console.log('tx=', hash_returned));
-}
-else {
-    console.warn("nonce==pendingNonce", nonce, pendingNonce);
+} else {
+    console.warn('nonce==pendingNonce', nonce, pendingNonce);
 }
