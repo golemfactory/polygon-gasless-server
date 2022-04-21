@@ -18,18 +18,25 @@ const ForwardRequest = z.object({
     blockHash: HexString().optional(),
 });
 
-const sender = new TransactionSender(web3, config.gasPrice, config.secret!);
-
-sender.start();
+let _sender: TransactionSender | undefined = undefined;
 
 const pendingSenders = new Set<string>();
 
+function getSender(): TransactionSender {
+    if (!_sender) {
+        _sender = new TransactionSender(web3, config.gasPrice, config.secret!);
+        _sender.start();
+    }
+
+    return _sender;
+}
 export default new Router()
     .post('/transfer', async (ctx: Context) => {
         const logger = log.getLogger('webapps');
-
         try {
-            const input = ForwardRequest.parse(await ctx.request.body({ type: 'json' }).value);
+            const input = ForwardRequest.parse(
+                await ctx.request.body({ type: 'json' }).value,
+            );
 
             // checking if this is transfer
             const decoded_arguments = decodeTransfer(input.abiFunctionCall);
@@ -41,7 +48,11 @@ export default new Router()
                 return;
             }
 
-            const error_details = await validateTransferMetaTxArguments(input.sender, decoded_arguments, input.blockHash || 'latest');
+            const error_details = await validateTransferMetaTxArguments(
+                input.sender,
+                decoded_arguments,
+                input.blockHash || 'latest',
+            );
 
             if (error_details) {
                 ctx.response.status = 400;
@@ -51,15 +62,25 @@ export default new Router()
                 return;
             }
 
-            logger.info(() => `Forwarding transfer from ${input.sender} to ${decoded_arguments.recipient} of ${utils.fromWei(decoded_arguments.amount)}`);
+            logger.info(
+                () => `Forwarding transfer from ${input.sender} to ${decoded_arguments.recipient} of ${utils.fromWei(decoded_arguments.amount)}`,
+            );
             logger.debug(() => `input=${JSON.stringify(input)}`);
 
-            const data = glm.methods.executeMetaTransaction(input.sender, input.abiFunctionCall, input.r, input.s, input.v).encodeABI();
+            const data = glm.methods
+                .executeMetaTransaction(
+                    input.sender,
+                    input.abiFunctionCall,
+                    input.r,
+                    input.s,
+                    input.v,
+                )
+                .encodeABI();
 
             if (pendingSenders.has(input.sender)) {
                 ctx.response.status = 429;
                 ctx.response.body = {
-                    'message': 'processing concurrent transaction',
+                    message: 'processing concurrent transaction',
                 };
                 return;
             }
@@ -69,19 +90,24 @@ export default new Router()
                 const storageKey = `sender.${input.sender}`;
                 if (gracePeriodMs) {
                     const prev = localStorage.getItem(storageKey);
-                    logger.debug(() => `check gracePeriodMs=${gracePeriodMs}, for ${storageKey}, prev=${prev}`);
-                    if (prev && (now - parseInt(prev)) < gracePeriodMs) {
+                    logger.debug(
+                        () => `check gracePeriodMs=${gracePeriodMs}, for ${storageKey}, prev=${prev}`,
+                    );
+                    if (prev && now - parseInt(prev) < gracePeriodMs) {
                         const retryAfter = new Date(parseInt(prev) + gracePeriodMs);
                         ctx.response.status = 429;
                         ctx.response.headers.set('Retry-After', retryAfter.toUTCString());
                         ctx.response.body = {
-                            'message': 'Grace period did not pass for this address',
+                            message: 'Grace period did not pass for this address',
                         };
                         return;
                     }
                 }
 
-                const txId = await sender.sendTx({ to: glm.options.address, data });
+                const txId = await getSender().sendTx({
+                    to: glm.options.address,
+                    data,
+                });
 
                 localStorage.setItem(storageKey, now.toString());
                 ctx.response.type = 'json';
@@ -115,9 +141,9 @@ export default new Router()
     })
     .get('/status', async (ctx: Context) => {
         const networkId = await web3.eth.net.getId();
-        const address = sender.address;
+        const address = getSender().address;
         const gas = utils.fromWei(await web3.eth.getBalance(address));
-        const queueSize = sender.queueSize;
+        const queueSize = getSender().queueSize;
         const contractAddress = config.contractAddress;
         ctx.response.status = Status.OK;
         ctx.response.type = 'json';
@@ -132,7 +158,11 @@ export default new Router()
         };
     });
 
-export async function validateTransferMetaTxArguments(sender: string, transfer_details: TransferArgs, block_hash: string): Promise<string | undefined> {
+export async function validateTransferMetaTxArguments(
+    sender: string,
+    transfer_details: TransferArgs,
+    block_hash: string,
+): Promise<string | undefined> {
     const requested_amount = web3.utils.toBN(transfer_details.amount);
 
     if (requested_amount.isZero()) {
@@ -169,11 +199,11 @@ export async function validateTransferMetaTxArguments(sender: string, transfer_d
         return 'Provided block is too old and can contain stale data';
     }
 
-    const balance = await web3.eth.call({ data: glm.methods.balanceOf(from).encodeABI(), to: glm.options.address }, block_hash).then((res) => web3.utils.toBN(res));
+    // const balance = await web3.eth.call({ data: glm.methods.balanceOf(from).encodeABI(), to: glm.options.address }, block_hash).then((res) => web3.utils.toBN(res));
 
-    if (!requested_amount.eq(balance)) {
-        return 'Only full withdrawals are supported';
-    }
+    // if (!requested_amount.eq(balance)) {
+    //     return 'Only full withdrawals are supported';
+    // }
 
     return undefined;
 }
