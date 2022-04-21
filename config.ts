@@ -1,5 +1,6 @@
 import { setupWeb3Api } from './sci.ts';
 import { dotenv } from './deps.ts';
+import { contract } from './sci/golem-polygon-contract.ts';
 
 let _dotenvCfg: dotenv.DotenvConfig | undefined = undefined;
 
@@ -64,4 +65,14 @@ export const port = await getIntEnv('BACKEND_SERVICE_PORT') || 8000;
 
 export const gracePeriodMs = await getIntEnv('GRACE_PERIOD_MS');
 
-export default setupWeb3Api(config.rpc);
+export const blockMaxAgeS = await getIntEnv('BLOCK_MAX_AGE') || 5 * 60;
+
+const web3 = setupWeb3Api(config.rpc);
+
+/*
+  Mainnet = "0x0b220b82f3ea3b7f6d9a1d8ab58930c064a2b5bf";
+  Mumbai = "0x2036807B0B3aaf5b1858EE822D0e111fDdac7018";
+*/
+export const glm = contract(web3, config.contractAddress || '0x0b220b82f3ea3b7f6d9a1d8ab58930c064a2b5bf');
+
+export default web3;
