@@ -5,7 +5,7 @@ import web3, { blockMaxAgeS, config, glm, gracePeriodMs } from '../config.ts';
 import { TransactionSender } from '../sci/transaction-sender.ts';
 import { decodeTransfer, TransferArgs } from '../sci/transfer-tx-decoder.ts';
 
-const HexString = () => z.string().refine(utils.isHexStrict, 'expected hex string');
+const HexString = () => z.string().refine(utils.isHexStrict, 'expected 0x prefixed hex string');
 const Address = () => z.string().refine(utils.isAddress, 'expected eth address');
 
 const ForwardRequest = z.object({
@@ -24,7 +24,8 @@ const pendingSenders = new Set<string>();
 
 function getSender(): TransactionSender {
     if (!_sender) {
-        _sender = new TransactionSender(web3, config.gasPrice, config.secret!);
+        _sender = new TransactionSender(web3, config.gasPrice, config.gasPriceUpperLimit, config.secret!);
+        // TODO: sender is not started before reach to the endpoint, that sucks!
         _sender.start();
     }
 
@@ -144,6 +145,8 @@ export default new Router()
         const address = getSender().address;
         const gas = utils.fromWei(await web3.eth.getBalance(address));
         const queueSize = getSender().queueSize;
+        const gasPrice =  getSender().gasPrice.toString(10);
+        const gasPriceUpperLimit = getSender().gasPriceUpperLimit.toString(10);
         const contractAddress = config.contractAddress;
         ctx.response.status = Status.OK;
         ctx.response.type = 'json';
@@ -151,6 +154,8 @@ export default new Router()
             networkId,
             address,
             gas,
+            gasPrice,
+            gasPriceUpperLimit,
             queueSize,
             contractAddress,
             gracePeriodMs,

@@ -1,8 +1,8 @@
 import { PolygonNetwork, utils, Web3 } from '../sci.ts';
 import { delay, log } from '../deps.ts';
+import BN from 'https://deno.land/x/web3@v0.9.2/types/bn.d.ts';
 
 const GAS_LIMIT = 800 * 1000;
-
 export type Transaction = {
     to: string;
     data: string;
@@ -52,7 +52,8 @@ export class TransactionSender {
     private readonly network: PolygonNetwork;
     private pendingTransaction: PendingTransaction | null = null;
     private queuedTransactions: Queue<QueuedTransaction> = new Queue();
-    private readonly gasPrice: string;
+    private _gasPrice: BN;
+    private readonly _gasPriceUpperLimit: BN;
     private _lock = false;
     private _started?: number;
     private readonly logger = log.getLogger('sci');
@@ -60,6 +61,7 @@ export class TransactionSender {
     constructor(
         provider: Web3,
         gasPrice: string,
+        gasPriceUpperLimit: string,
         secretKey?: string,
         network: PolygonNetwork = 'mainnet',
     ) {
@@ -67,7 +69,8 @@ export class TransactionSender {
         this.network = network;
         const addedAccount = secretKey ? provider.eth.accounts.wallet.add(secretKey) : provider.eth.accounts.create();
         this.sender = addedAccount.address;
-        this.gasPrice = utils.toHex(this.web3.utils.toWei(gasPrice, 'gwei'));
+        this._gasPrice = this.web3.utils.toBN(this.web3.utils.toWei(gasPrice, 'gwei'));
+        this._gasPriceUpperLimit = this.web3.utils.toBN(this.web3.utils.toWei(gasPriceUpperLimit, 'gwei'));
     }
 
     public get address(): string {
@@ -76,6 +79,14 @@ export class TransactionSender {
 
     public get queueSize(): number {
         return this.queuedTransactions.length;
+    }
+
+    public get gasPrice(): BN {
+        return this._gasPrice;
+    }
+
+    public get gasPriceUpperLimit(): BN {
+        return this._gasPriceUpperLimit;
     }
 
     public async sendTx(tx: Transaction): Promise<string> {
@@ -197,9 +208,10 @@ export class TransactionSender {
 
             const txObject = {
                 nonce: nonce,
+                type: '0x2',
                 gasLimit,
-                // Keep gas price hardcoded, prevents from spending too much in case if chain is under artificial heavy load
-                gasPrice: this.gasPrice,
+                maxFeePerGas: utils.toHex(this.gasPriceUpperLimit),
+                maxPriorityFeePerGas: utils.toHex(this.gasPrice),
                 // Address inserted in the wallet
                 from: this.sender,
                 to: transaction.to,
@@ -208,6 +220,7 @@ export class TransactionSender {
                     customChain,
                 },
             };
+
             try {
                 const txId: string = await new Promise((resolve, reject) => {
                     this.web3.eth
