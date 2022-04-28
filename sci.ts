@@ -14,6 +14,5 @@ export type Web3 = Web3Type;
 export type AbiItem = web3_utils.AbiItem;
 export type Contract = web3_eth_contract.Contract;
 export type TransactionReceipt = web3_core.TransactionReceipt;
-
 export const utils = Web3Api.utils;
 export const abi = new Web3Api().eth.abi;
