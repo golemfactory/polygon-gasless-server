@@ -8,6 +8,7 @@ await log.setup({
         default: new log.handlers.ConsoleHandler('DEBUG'),
     },
     loggers: {
+        default: { level: 'DEBUG', handlers: ['default'] },
         sci: { level: 'DEBUG', handlers: ['default'] },
     },
 });
@@ -22,9 +23,9 @@ if (!secretKey) {
 
 const web3 = setupWeb3Api('http://bor2.golem.network');
 const glm = contract(web3);
-const sender = new TransactionSender(web3, secretKey);
+const sender = new TransactionSender(web3, '31.1', secretKey);
 
-const data = glm.methods.transfer('0x226aC45F7145C73331B721F3229AFdBEC470D724', web3.utils.toWei('0.1')).encodeABI();
+const data = glm.methods.transfer('0x226aC45F7145C73331B721F3229AFdBEC470D724', web3.utils.toWei('0.001')).encodeABI();
 
 sender.start();
 console.log(`started sender on ${sender.address}`);

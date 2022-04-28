@@ -1,8 +1,8 @@
 import { PolygonNetwork, utils, Web3 } from '../sci.ts';
 import { delay, log } from '../deps.ts';
+import BN from 'https://deno.land/x/web3@v0.9.2/types/bn.d.ts';
 
 const GAS_LIMIT = 800 * 1000;
-
 export type Transaction = {
     to: string;
     data: string;
@@ -52,17 +52,25 @@ export class TransactionSender {
     private readonly network: PolygonNetwork;
     private pendingTransaction: PendingTransaction | null = null;
     private queuedTransactions: Queue<QueuedTransaction> = new Queue();
-    private readonly gasPrice: string;
+    private _gasPrice: BN;
+    private readonly _gasPriceUpperLimit: BN;
     private _lock = false;
     private _started?: number;
     private readonly logger = log.getLogger('sci');
 
-    constructor(provider: Web3, secretKey?: string, network: PolygonNetwork = 'mainnet', gasPrice: string = '31.1') {
+    constructor(
+        provider: Web3,
+        gasPrice: string,
+        gasPriceUpperLimit: string,
+        secretKey?: string,
+        network: PolygonNetwork = 'mainnet',
+    ) {
         this.web3 = provider;
         this.network = network;
         const addedAccount = secretKey ? provider.eth.accounts.wallet.add(secretKey) : provider.eth.accounts.create();
         this.sender = addedAccount.address;
-        this.gasPrice = utils.toHex(this.web3.utils.toWei(gasPrice, 'gwei'));
+        this._gasPrice = this.web3.utils.toBN(this.web3.utils.toWei(gasPrice, 'gwei'));
+        this._gasPriceUpperLimit = this.web3.utils.toBN(this.web3.utils.toWei(gasPriceUpperLimit, 'gwei'));
     }
 
     public get address(): string {
@@ -71,6 +79,14 @@ export class TransactionSender {
 
     public get queueSize(): number {
         return this.queuedTransactions.length;
+    }
+
+    public get gasPrice(): BN {
+        return this._gasPrice;
+    }
+
+    public get gasPriceUpperLimit(): BN {
+        return this._gasPriceUpperLimit;
     }
 
     public async sendTx(tx: Transaction): Promise<string> {
@@ -148,7 +164,7 @@ export class TransactionSender {
             if (!queuedTransaction) {
                 return;
             }
-            const { transaction, callback } = queuedTransaction;
+            const { transaction, callback, error } = queuedTransaction;
             const gasLimit = transaction.gasLimit || this.web3.utils.toHex(GAS_LIMIT);
             try {
                 const estimatedGas = await web3.eth.estimateGas({
@@ -158,7 +174,16 @@ export class TransactionSender {
                 });
 
                 if (estimatedGas > utils.toNumber(gasLimit)) {
-                    queuedTransaction.error(new Error(`failed to process transaction estimatedGas=${utils.fromWei(gasLimit, 'Gwei')}`));
+                    queuedTransaction.error(
+                        new Error(
+                            `failed to process transaction estimatedGas=${
+                                utils.fromWei(
+                                    gasLimit,
+                                    'Gwei',
+                                )
+                            }`,
+                        ),
+                    );
                     setTimeout(() => this._notify(), 100);
                     return;
                 }
@@ -183,9 +208,10 @@ export class TransactionSender {
 
             const txObject = {
                 nonce: nonce,
+                type: '0x2',
                 gasLimit,
-                // Keep gas price hardcoded, prevents from spending too much in case if chain is under artificial heavy load
-                gasPrice: this.gasPrice,
+                maxFeePerGas: utils.toHex(this.gasPriceUpperLimit),
+                maxPriorityFeePerGas: utils.toHex(this.gasPrice),
                 // Address inserted in the wallet
                 from: this.sender,
                 to: transaction.to,
@@ -194,13 +220,20 @@ export class TransactionSender {
                     customChain,
                 },
             };
+
             try {
                 const txId: string = await new Promise((resolve, reject) => {
-                    this.web3.eth.sendTransaction(txObject)
+                    this.web3.eth
+                        .sendTransaction(txObject)
                         .on('transactionHash', (hash_returned: string) => resolve(hash_returned))
                         .on('error', (err: Error) => {
                             reject(err);
-                        }).then(() => this._notify());
+                        })
+                        .then(() => this._notify())
+                        .catch((_e) => {
+                            // Exception is thrown despite the fact, .on(error) callback is called.
+                            // Consume it here, since proper error handling happens in mentioned callback.
+                        });
                 });
 
                 logger.info(`send tx_id=${txId}`);
@@ -211,7 +244,7 @@ export class TransactionSender {
                 callback(txId);
             } catch (e) {
                 logger.error(`fatal ${e.message}`, e);
-                callback('xx');
+                error(e);
             }
         } finally {
             this._lock = false;
