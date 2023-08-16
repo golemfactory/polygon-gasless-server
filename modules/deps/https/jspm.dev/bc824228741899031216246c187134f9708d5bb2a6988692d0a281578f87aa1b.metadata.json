@@ -1,0 +1,28 @@
+{
+  "headers": {
+    "last-modified": "Fri, 19 Aug 2022 21:20:39 GMT",
+    "etag": "\"4a59c4a1adb7a909263e855da6930159\"",
+    "access-control-expose-headers": "Content-Type",
+    "x-cf1": "29748:fE.waw1:co:1669825690:cacheN.waw1-01:M",
+    "access-control-allow-origin": "*",
+    "expires": "Sun, 20 Aug 2023 16:15:51 GMT",
+    "cross-origin-resource-policy": "cross-origin",
+    "content-type": "text/javascript; charset=utf-8",
+    "date": "Wed, 16 Aug 2023 08:04:58 GMT",
+    "x-cf2": "H",
+    "x-cff": "B",
+    "cf4age": "228415",
+    "x-cf-reqid": "6708350bd440e37fc8dfb329b27a3c6b",
+    "accept-ranges": "bytes",
+    "x-cf-tsc": "1692171767",
+    "cf4ttl": "604800.000",
+    "server": "CFS 0215",
+    "x-cf3": "H",
+    "cache-control": "public, max-age=31536000, s-maxage=604800, immutable"
+  },
+  "url": "https://jspm.dev/npm:@ethersproject/logger@5.7.0",
+  "now": {
+    "secs_since_epoch": 1692173098,
+    "nanos_since_epoch": 95409000
+  }
+}

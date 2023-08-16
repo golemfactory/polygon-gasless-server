@@ -1,0 +1,31 @@
+{
+  "headers": {
+    "cache-control": "public, max-age=31536000, s-maxage=604800, immutable",
+    "x-cf2": "H",
+    "last-modified": "Tue, 21 Jul 2020 10:43:18 GMT",
+    "server": "CFS 0215",
+    "etag": "\"ae03a7f81bd94f707075ef9585c91033\"",
+    "cf4age": "0",
+    "date": "Wed, 16 Aug 2023 08:04:59 GMT",
+    "accept-ranges": "bytes",
+    "x-cf-tsc": "1692171769",
+    "x-cf1": "29748:fE.waw1:co:1669825690:cacheN.waw1-01:M",
+    "expires": "Wed, 23 Aug 2023 07:42:49 GMT",
+    "access-control-allow-origin": "*",
+    "content-language": "en",
+    "x-cf-rand": "83.198",
+    "vary": "X-Goog-Allowed-Resources",
+    "access-control-expose-headers": "Content-Type",
+    "x-cf-reqid": "8c7701c394aaf2cedadb1edc2f50e05a",
+    "content-type": "application/javascript",
+    "x-cff": "B",
+    "cf4ttl": "604800.000",
+    "cross-origin-resource-policy": "cross-origin",
+    "x-cf3": "M"
+  },
+  "url": "https://jspm.dev/npm:multicodec@1.0.4/src/varint-table!cjs",
+  "now": {
+    "secs_since_epoch": 1692173099,
+    "nanos_since_epoch": 7857000
+  }
+}

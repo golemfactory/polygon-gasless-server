@@ -1,0 +1,30 @@
+{
+  "headers": {
+    "server": "CFS 0215",
+    "cache-control": "public, max-age=200",
+    "date": "Wed, 16 Aug 2023 08:04:57 GMT",
+    "access-control-allow-origin": "*",
+    "cross-origin-resource-policy": "cross-origin",
+    "x-cf-tsc": "1692171767",
+    "x-cf3": "M",
+    "etag": "\"af0c353c0ca9d4fc1800bcc07cec99e3\"",
+    "access-control-expose-headers": "Content-Type",
+    "last-modified": "Mon, 04 Oct 2021 13:05:26 GMT",
+    "x-cf-rand": "29.828",
+    "vary": "X-Goog-Allowed-Resources",
+    "content-type": "application/javascript; charset=utf-8",
+    "expires": "Wed, 16 Aug 2023 07:46:06 GMT",
+    "cf4age": "0",
+    "x-cff": "B",
+    "x-cf1": "29748:fE.waw1:co:1669825690:cacheN.waw1-01:M",
+    "cf4ttl": "200.000",
+    "x-cf-reqid": "cd4de33f6f72e7c262f3ec8b3e3ead2a",
+    "x-cf2": "H",
+    "accept-ranges": "bytes"
+  },
+  "url": "https://jspm.dev/npm:ethereum-cryptography@0.1/keccak!cjs",
+  "now": {
+    "secs_since_epoch": 1692173097,
+    "nanos_since_epoch": 663486000
+  }
+}

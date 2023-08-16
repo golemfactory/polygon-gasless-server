@@ -1,0 +1,2 @@
+export * from "/npm:ieee754@1.2.1!cjs";
+export { default } from "/npm:ieee754@1.2.1!cjs";

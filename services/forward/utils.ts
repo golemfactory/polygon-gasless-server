@@ -9,7 +9,7 @@ const Address = () =>
 export const ForwardRequest = z.object({
   r: HexString(),
   s: HexString(),
-  v: HexString(),
+  v: z.number(),
   sender: Address(),
   abiFunctionCall: HexString(),
   signedRequest: HexString().optional(),

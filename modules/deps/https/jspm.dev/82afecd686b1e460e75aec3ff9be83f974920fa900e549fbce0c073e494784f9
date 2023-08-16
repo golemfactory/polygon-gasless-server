@@ -1,0 +1,13 @@
+var exports = {};
+
+exports = function (str) {
+  return encodeURIComponent(str).replace(/[!'()*]/g, function (c) {
+    return "%" + c.charCodeAt(0).toString(16).toUpperCase();
+  });
+};
+
+var exports$1 = exports;
+
+export default exports$1;
+
+//# sourceMappingURL=npm:strict-uri-encode@1.1.0!cjs.map

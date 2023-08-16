@@ -1,0 +1,3 @@
+import "/npm:safe-buffer@5.2!cjs";
+export * from "/npm:string_decoder@1.3.0!cjs";
+export { default } from "/npm:string_decoder@1.3.0!cjs";

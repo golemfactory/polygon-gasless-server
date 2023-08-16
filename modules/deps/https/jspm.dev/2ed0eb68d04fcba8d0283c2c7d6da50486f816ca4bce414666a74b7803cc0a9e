@@ -1,0 +1,3 @@
+import "/npm:safe-buffer@5!cjs";
+import "/npm:@jspm/core@2/nodelibs/process";
+export { default } from "/npm:randombytes@2.1.0!cjs";

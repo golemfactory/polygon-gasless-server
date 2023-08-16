@@ -1,0 +1,1 @@
+export { default } from "/npm:parse-headers@2.0.5!cjs";

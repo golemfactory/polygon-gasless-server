@@ -1,0 +1,9 @@
+import crc16xmodem$1 from './calculators/crc16xmodem';
+import { d as defineCrc } from './_/a7365c44.js';
+import '../npm:buffer';
+
+var crc16xmodem = defineCrc('xmodem', crc16xmodem$1);
+
+export { crc16xmodem as default };
+
+//# sourceMappingURL=crc16xmodem.map

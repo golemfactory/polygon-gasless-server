@@ -1,0 +1,3 @@
+import "/npm:es5-ext@0.10/global!cjs";
+export * from "/npm:websocket@1.0.34!cjs";
+export { default } from "/npm:websocket@1.0.34!cjs";

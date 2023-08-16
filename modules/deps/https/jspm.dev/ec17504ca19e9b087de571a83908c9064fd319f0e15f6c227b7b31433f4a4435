@@ -1,0 +1,9 @@
+import crc16$1 from './calculators/crc16';
+import { d as defineCrc } from './_/a7365c44.js';
+import '../npm:buffer';
+
+var crc16 = defineCrc('crc-16', crc16$1);
+
+export { crc16 as default };
+
+//# sourceMappingURL=crc16.map

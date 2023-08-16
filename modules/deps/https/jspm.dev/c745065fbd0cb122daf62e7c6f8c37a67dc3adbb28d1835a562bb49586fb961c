@@ -1,0 +1,7 @@
+import "/npm:varint@5!cjs";
+import "/npm:multicodec@0.5.7/src/base-table";
+import "/npm:@jspm/core@2/nodelibs/buffer";
+import "/npm:multicodec@0.5.7/src/util!cjs";
+import "/npm:multicodec@0.5.7/src/varint-table!cjs";
+export * from "/npm:multicodec@0.5.7!cjs";
+export { default } from "/npm:multicodec@0.5.7!cjs";

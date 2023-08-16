@@ -1,0 +1,4 @@
+import "/npm:secp256k1@4.0.3/_/9192dda6.js";
+import "/npm:secp256k1@4.0.3/lib/elliptic!cjs";
+import "/npm:elliptic@6!cjs";
+export { default } from "/npm:secp256k1@4.0.3!cjs";

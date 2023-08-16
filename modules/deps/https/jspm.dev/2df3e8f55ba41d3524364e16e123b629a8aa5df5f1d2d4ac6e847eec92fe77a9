@@ -1,0 +1,85 @@
+import _bytes from './bytes!cjs';
+import '/npm:@jspm/core@2/nodelibs/crypto';
+import _bn from '/npm:bn.js@4!cjs';
+
+var exports = {};
+var BN = _bn;
+var Bytes = _bytes;
+
+var fromBN = function fromBN(bn) {
+  return "0x" + bn.toString("hex");
+};
+
+var toBN = function toBN(str) {
+  return new BN(str.slice(2), 16);
+};
+
+var fromString = function fromString(str) {
+  var bn = "0x" + (str.slice(0, 2) === "0x" ? new BN(str.slice(2), 16) : new BN(str, 10)).toString("hex");
+  return bn === "0x0" ? "0x" : bn;
+};
+
+var toEther = function toEther(wei) {
+  return toNumber(div(wei, fromString("10000000000"))) / 100000000;
+};
+
+var fromEther = function fromEther(eth) {
+  return mul(fromNumber(Math.floor(eth * 100000000)), fromString("10000000000"));
+};
+
+var toString = function toString(a) {
+  return toBN(a).toString(10);
+};
+
+var fromNumber = function fromNumber(a) {
+  return typeof a === "string" ? /^0x/.test(a) ? a : "0x" + a : "0x" + new BN(a).toString("hex");
+};
+
+var toNumber = function toNumber(a) {
+  return toBN(a).toNumber();
+};
+
+var toUint256 = function toUint256(a) {
+  return Bytes.pad(32, a);
+};
+
+var bin = function bin(method) {
+  return function (a, b) {
+    return fromBN(toBN(a)[method](toBN(b)));
+  };
+};
+
+var add = bin("add");
+var mul = bin("mul");
+var div = bin("div");
+var sub = bin("sub");
+exports = {
+  toString: toString,
+  fromString: fromString,
+  toNumber: toNumber,
+  fromNumber: fromNumber,
+  toEther: toEther,
+  fromEther: fromEther,
+  toUint256: toUint256,
+  add: add,
+  mul: mul,
+  div: div,
+  sub: sub
+};
+var _nat = exports;
+const _toString = exports.toString,
+      _fromString = exports.fromString,
+      _toNumber = exports.toNumber,
+      _fromNumber = exports.fromNumber,
+      _toEther = exports.toEther,
+      _fromEther = exports.fromEther,
+      _toUint = exports.toUint256,
+      _add = exports.add,
+      _mul = exports.mul,
+      _div = exports.div,
+      _sub = exports.sub;
+
+export default _nat;
+export { _add as add, _div as div, _fromEther as fromEther, _fromNumber as fromNumber, _fromString as fromString, _mul as mul, _sub as sub, _toEther as toEther, _toNumber as toNumber, _toString as toString, _toUint as toUint256 };
+
+//# sourceMappingURL=nat!cjs.map

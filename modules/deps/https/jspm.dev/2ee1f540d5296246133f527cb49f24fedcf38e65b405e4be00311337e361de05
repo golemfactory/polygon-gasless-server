@@ -1,0 +1,2872 @@
+import { hexToBytes, isHexPrefixed, stripHexPrefix, intToHex, toType, TypeOutput, concatBytes, bytesToHex, intToBytes } from './util@9';
+import { crc32 } from '../npm:crc@4';
+import { EventEmitter } from '../npm:@jspm/core@2/nodelibs/events';
+
+const chains = {
+    mainnet: {
+        name: 'mainnet',
+        chainId: 1,
+        networkId: 1,
+        defaultHardfork: 'shanghai',
+        consensus: {
+            type: 'pow',
+            algorithm: 'ethash',
+            ethash: {},
+        },
+        comment: 'The Ethereum main chain',
+        url: 'https://ethstats.net/',
+        genesis: {
+            gasLimit: 5000,
+            difficulty: 17179869184,
+            nonce: '0x0000000000000042',
+            extraData: '0x11bbe8db4e347b4e8c937c1c8370e4b5ed33adb3db69cbdb7a38e1e50b1b82fa',
+        },
+        hardforks: [
+            {
+                name: 'chainstart',
+                block: 0,
+                forkHash: '0xfc64ec04',
+            },
+            {
+                name: 'homestead',
+                block: 1150000,
+                forkHash: '0x97c2c34c',
+            },
+            {
+                name: 'dao',
+                block: 1920000,
+                forkHash: '0x91d1f948',
+            },
+            {
+                name: 'tangerineWhistle',
+                block: 2463000,
+                forkHash: '0x7a64da13',
+            },
+            {
+                name: 'spuriousDragon',
+                block: 2675000,
+                forkHash: '0x3edd5b10',
+            },
+            {
+                name: 'byzantium',
+                block: 4370000,
+                forkHash: '0xa00bc324',
+            },
+            {
+                name: 'constantinople',
+                block: 7280000,
+                forkHash: '0x668db0af',
+            },
+            {
+                name: 'petersburg',
+                block: 7280000,
+                forkHash: '0x668db0af',
+            },
+            {
+                name: 'istanbul',
+                block: 9069000,
+                forkHash: '0x879d6e30',
+            },
+            {
+                name: 'muirGlacier',
+                block: 9200000,
+                forkHash: '0xe029e991',
+            },
+            {
+                name: 'berlin',
+                block: 12244000,
+                forkHash: '0x0eb440f6',
+            },
+            {
+                name: 'london',
+                block: 12965000,
+                forkHash: '0xb715077d',
+            },
+            {
+                name: 'arrowGlacier',
+                block: 13773000,
+                forkHash: '0x20c327fc',
+            },
+            {
+                name: 'grayGlacier',
+                block: 15050000,
+                forkHash: '0xf0afd0e3',
+            },
+            {
+                // The forkHash will remain same as mergeForkIdTransition is post merge
+                // terminal block: https://etherscan.io/block/15537393
+                name: 'paris',
+                ttd: '58750000000000000000000',
+                block: 15537394,
+                forkHash: '0xf0afd0e3',
+            },
+            {
+                name: 'mergeForkIdTransition',
+                block: null,
+                forkHash: null,
+            },
+            {
+                name: 'shanghai',
+                block: null,
+                timestamp: '1681338455',
+                forkHash: '0xdce96c2d',
+            },
+            {
+                name: 'cancun',
+                block: null,
+                forkHash: null,
+            },
+        ],
+        bootstrapNodes: [
+            {
+                ip: '18.138.108.67',
+                port: 30303,
+                id: 'd860a01f9722d78051619d1e2351aba3f43f943f6f00718d1b9baa4101932a1f5011f16bb2b1bb35db20d6fe28fa0bf09636d26a87d31de9ec6203eeedb1f666',
+                location: 'ap-southeast-1-001',
+                comment: 'bootnode-aws-ap-southeast-1-001',
+            },
+            {
+                ip: '3.209.45.79',
+                port: 30303,
+                id: '22a8232c3abc76a16ae9d6c3b164f98775fe226f0917b0ca871128a74a8e9630b458460865bab457221f1d448dd9791d24c4e5d88786180ac185df813a68d4de',
+                location: 'us-east-1-001',
+                comment: 'bootnode-aws-us-east-1-001',
+            },
+            {
+                ip: '65.108.70.101',
+                port: 30303,
+                id: '2b252ab6a1d0f971d9722cb839a42cb81db019ba44c08754628ab4a823487071b5695317c8ccd085219c3a03af063495b2f1da8d18218da2d6a82981b45e6ffc',
+                location: 'eu-west-1-001',
+                comment: 'bootnode-hetzner-hel',
+            },
+            {
+                ip: '157.90.35.166',
+                port: 30303,
+                id: '4aeb4ab6c14b23e2c4cfdce879c04b0748a20d8e9b59e25ded2a08143e265c6c25936e74cbc8e641e3312ca288673d91f2f93f8e277de3cfa444ecdaaf982052',
+                location: 'eu-central-1-001',
+                comment: 'bootnode-hetzner-fsn',
+            },
+        ],
+        dnsNetworks: [
+            'enrtree://AKA3AM6LPBYEUDMVNU3BSVQJ5AD45Y7YPOHJLEF6W26QOE4VTUDPE@all.mainnet.ethdisco.net',
+        ],
+    },
+    goerli: {
+        name: 'goerli',
+        chainId: 5,
+        networkId: 5,
+        defaultHardfork: 'shanghai',
+        consensus: {
+            type: 'poa',
+            algorithm: 'clique',
+            clique: {
+                period: 15,
+                epoch: 30000,
+            },
+        },
+        comment: 'Cross-client PoA test network',
+        url: 'https://github.com/goerli/testnet',
+        genesis: {
+            timestamp: '0x5c51a607',
+            gasLimit: 10485760,
+            difficulty: 1,
+            nonce: '0x0000000000000000',
+            extraData: '0x22466c6578692069732061207468696e6722202d204166726900000000000000e0a2bd4258d2768837baa26a28fe71dc079f84c70000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
+        },
+        hardforks: [
+            {
+                name: 'chainstart',
+                block: 0,
+                forkHash: '0xa3f5ab08',
+            },
+            {
+                name: 'homestead',
+                block: 0,
+                forkHash: '0xa3f5ab08',
+            },
+            {
+                name: 'tangerineWhistle',
+                block: 0,
+                forkHash: '0xa3f5ab08',
+            },
+            {
+                name: 'spuriousDragon',
+                block: 0,
+                forkHash: '0xa3f5ab08',
+            },
+            {
+                name: 'byzantium',
+                block: 0,
+                forkHash: '0xa3f5ab08',
+            },
+            {
+                name: 'constantinople',
+                block: 0,
+                forkHash: '0xa3f5ab08',
+            },
+            {
+                name: 'petersburg',
+                block: 0,
+                forkHash: '0xa3f5ab08',
+            },
+            {
+                name: 'istanbul',
+                block: 1561651,
+                forkHash: '0xc25efa5c',
+            },
+            {
+                name: 'berlin',
+                block: 4460644,
+                forkHash: '0x757a1c47',
+            },
+            {
+                name: 'london',
+                block: 5062605,
+                forkHash: '0xb8c6299d',
+            },
+            {
+                // The forkHash will remain same as mergeForkIdTransition is post merge,
+                // terminal block: https://goerli.etherscan.io/block/7382818
+                name: 'paris',
+                ttd: '10790000',
+                block: 7382819,
+                forkHash: '0xb8c6299d',
+            },
+            {
+                name: 'mergeForkIdTransition',
+                block: null,
+                forkHash: null,
+            },
+            {
+                name: 'shanghai',
+                block: null,
+                timestamp: '1678832736',
+                forkHash: '0xf9843abf',
+            },
+            {
+                name: 'cancun',
+                block: null,
+                forkHash: null,
+            },
+        ],
+        bootstrapNodes: [
+            {
+                ip: '51.141.78.53',
+                port: 30303,
+                id: '011f758e6552d105183b1761c5e2dea0111bc20fd5f6422bc7f91e0fabbec9a6595caf6239b37feb773dddd3f87240d99d859431891e4a642cf2a0a9e6cbb98a',
+                location: '',
+                comment: 'Upstream bootnode 1',
+            },
+            {
+                ip: '13.93.54.137',
+                port: 30303,
+                id: '176b9417f511d05b6b2cf3e34b756cf0a7096b3094572a8f6ef4cdcb9d1f9d00683bf0f83347eebdf3b81c3521c2332086d9592802230bf528eaf606a1d9677b',
+                location: '',
+                comment: 'Upstream bootnode 2',
+            },
+            {
+                ip: '94.237.54.114',
+                port: 30313,
+                id: '46add44b9f13965f7b9875ac6b85f016f341012d84f975377573800a863526f4da19ae2c620ec73d11591fa9510e992ecc03ad0751f53cc02f7c7ed6d55c7291',
+                location: '',
+                comment: 'Upstream bootnode 3',
+            },
+            {
+                ip: '18.218.250.66',
+                port: 30313,
+                id: 'b5948a2d3e9d486c4d75bf32713221c2bd6cf86463302339299bd227dc2e276cd5a1c7ca4f43a0e9122fe9af884efed563bd2a1fd28661f3b5f5ad7bf1de5949',
+                location: '',
+                comment: 'Upstream bootnode 4',
+            },
+            {
+                ip: '3.11.147.67',
+                port: 30303,
+                id: 'a61215641fb8714a373c80edbfa0ea8878243193f57c96eeb44d0bc019ef295abd4e044fd619bfc4c59731a73fb79afe84e9ab6da0c743ceb479cbb6d263fa91',
+                location: '',
+                comment: 'Ethereum Foundation bootnode',
+            },
+            {
+                ip: '51.15.116.226',
+                port: 30303,
+                id: 'a869b02cec167211fb4815a82941db2e7ed2936fd90e78619c53eb17753fcf0207463e3419c264e2a1dd8786de0df7e68cf99571ab8aeb7c4e51367ef186b1dd',
+                location: '',
+                comment: 'Goerli Initiative bootnode',
+            },
+            {
+                ip: '51.15.119.157',
+                port: 30303,
+                id: '807b37ee4816ecf407e9112224494b74dd5933625f655962d892f2f0f02d7fbbb3e2a94cf87a96609526f30c998fd71e93e2f53015c558ffc8b03eceaf30ee33',
+                location: '',
+                comment: 'Goerli Initiative bootnode',
+            },
+            {
+                ip: '51.15.119.157',
+                port: 40303,
+                id: 'a59e33ccd2b3e52d578f1fbd70c6f9babda2650f0760d6ff3b37742fdcdfdb3defba5d56d315b40c46b70198c7621e63ffa3f987389c7118634b0fefbbdfa7fd',
+                location: '',
+                comment: 'Goerli Initiative bootnode',
+            },
+        ],
+        dnsNetworks: [
+            'enrtree://AKA3AM6LPBYEUDMVNU3BSVQJ5AD45Y7YPOHJLEF6W26QOE4VTUDPE@all.goerli.ethdisco.net',
+        ],
+    },
+    sepolia: {
+        name: 'sepolia',
+        chainId: 11155111,
+        networkId: 11155111,
+        defaultHardfork: 'shanghai',
+        consensus: {
+            type: 'pow',
+            algorithm: 'ethash',
+            ethash: {},
+        },
+        comment: 'PoW test network to replace Ropsten',
+        url: 'https://github.com/ethereum/go-ethereum/pull/23730',
+        genesis: {
+            timestamp: '0x6159af19',
+            gasLimit: 30000000,
+            difficulty: 131072,
+            nonce: '0x0000000000000000',
+            extraData: '0x5365706f6c69612c20417468656e732c204174746963612c2047726565636521',
+        },
+        hardforks: [
+            {
+                name: 'chainstart',
+                block: 0,
+                forkHash: '0xfe3366e7',
+            },
+            {
+                name: 'homestead',
+                block: 0,
+                forkHash: '0xfe3366e7',
+            },
+            {
+                name: 'tangerineWhistle',
+                block: 0,
+                forkHash: '0xfe3366e7',
+            },
+            {
+                name: 'spuriousDragon',
+                block: 0,
+                forkHash: '0xfe3366e7',
+            },
+            {
+                name: 'byzantium',
+                block: 0,
+                forkHash: '0xfe3366e7',
+            },
+            {
+                name: 'constantinople',
+                block: 0,
+                forkHash: '0xfe3366e7',
+            },
+            {
+                name: 'petersburg',
+                block: 0,
+                forkHash: '0xfe3366e7',
+            },
+            {
+                name: 'istanbul',
+                block: 0,
+                forkHash: '0xfe3366e7',
+            },
+            {
+                name: 'muirGlacier',
+                block: 0,
+                forkHash: '0xfe3366e7',
+            },
+            {
+                name: 'berlin',
+                block: 0,
+                forkHash: '0xfe3366e7',
+            },
+            {
+                name: 'london',
+                block: 0,
+                forkHash: '0xfe3366e7',
+            },
+            {
+                // The forkHash will remain same as mergeForkIdTransition is post merge,
+                // terminal block: https://sepolia.etherscan.io/block/1450408
+                name: 'paris',
+                ttd: '17000000000000000',
+                block: 1450409,
+                forkHash: '0xfe3366e7',
+            },
+            {
+                name: 'mergeForkIdTransition',
+                block: 1735371,
+                forkHash: '0xb96cbd13',
+            },
+            {
+                name: 'shanghai',
+                block: null,
+                timestamp: '1677557088',
+                forkHash: '0xf7f9bc08',
+            },
+            {
+                name: 'cancun',
+                block: null,
+                forkHash: null,
+            },
+        ],
+        bootstrapNodes: [
+            {
+                ip: '18.168.182.86',
+                port: 30303,
+                id: '9246d00bc8fd1742e5ad2428b80fc4dc45d786283e05ef6edbd9002cbc335d40998444732fbe921cb88e1d2c73d1b1de53bae6a2237996e9bfe14f871baf7066',
+                location: '',
+                comment: 'geth',
+            },
+            {
+                ip: '52.14.151.177',
+                port: 30303,
+                id: 'ec66ddcf1a974950bd4c782789a7e04f8aa7110a72569b6e65fcd51e937e74eed303b1ea734e4d19cfaec9fbff9b6ee65bf31dcb50ba79acce9dd63a6aca61c7',
+                location: '',
+                comment: 'besu',
+            },
+            {
+                ip: '165.22.196.173',
+                port: 30303,
+                id: 'ce970ad2e9daa9e14593de84a8b49da3d54ccfdf83cbc4fe519cb8b36b5918ed4eab087dedd4a62479b8d50756b492d5f762367c8d20329a7854ec01547568a6',
+                location: '',
+                comment: 'EF',
+            },
+            {
+                ip: '65.108.95.67',
+                port: 30303,
+                id: '075503b13ed736244896efcde2a992ec0b451357d46cb7a8132c0384721742597fc8f0d91bbb40bb52e7d6e66728d36a1fda09176294e4a30cfac55dcce26bc6',
+                location: '',
+                comment: 'lodestar',
+            },
+        ],
+        dnsNetworks: [
+            'enrtree://AKA3AM6LPBYEUDMVNU3BSVQJ5AD45Y7YPOHJLEF6W26QOE4VTUDPE@all.sepolia.ethdisco.net',
+        ],
+    },
+};
+
+var Chain;
+(function (Chain) {
+    Chain[Chain["Mainnet"] = 1] = "Mainnet";
+    Chain[Chain["Goerli"] = 5] = "Goerli";
+    Chain[Chain["Sepolia"] = 11155111] = "Sepolia";
+})(Chain || (Chain = {}));
+// Having this info as record will force typescript to make sure no chain is missed
+/**
+ * GenesisState info about well known ethereum chains
+ */
+const ChainGenesis = {
+    [Chain.Mainnet]: {
+        blockNumber: BigInt(0),
+        stateRoot: hexToBytes('0xd7f8974fb5ac78d9ac099b9ad5018bedc2ce0a72dad1827a1709da30580f0544'),
+    },
+    [Chain.Goerli]: {
+        blockNumber: BigInt(0),
+        stateRoot: hexToBytes('0x5d6cded585e73c4e322c30c2f782a336316f17dd85a4863b9d838d2d4b8b3008'),
+    },
+    [Chain.Sepolia]: {
+        blockNumber: BigInt(0),
+        stateRoot: hexToBytes('0x5eb6e371a698b8d68f665192350ffcecbbbf322916f4b51bd79bb6887da3f494'),
+    },
+};
+var Hardfork;
+(function (Hardfork) {
+    Hardfork["Chainstart"] = "chainstart";
+    Hardfork["Homestead"] = "homestead";
+    Hardfork["Dao"] = "dao";
+    Hardfork["TangerineWhistle"] = "tangerineWhistle";
+    Hardfork["SpuriousDragon"] = "spuriousDragon";
+    Hardfork["Byzantium"] = "byzantium";
+    Hardfork["Constantinople"] = "constantinople";
+    Hardfork["Petersburg"] = "petersburg";
+    Hardfork["Istanbul"] = "istanbul";
+    Hardfork["MuirGlacier"] = "muirGlacier";
+    Hardfork["Berlin"] = "berlin";
+    Hardfork["London"] = "london";
+    Hardfork["ArrowGlacier"] = "arrowGlacier";
+    Hardfork["GrayGlacier"] = "grayGlacier";
+    Hardfork["MergeForkIdTransition"] = "mergeForkIdTransition";
+    Hardfork["Paris"] = "paris";
+    Hardfork["Shanghai"] = "shanghai";
+    Hardfork["Cancun"] = "cancun";
+})(Hardfork || (Hardfork = {}));
+var ConsensusType;
+(function (ConsensusType) {
+    ConsensusType["ProofOfStake"] = "pos";
+    ConsensusType["ProofOfWork"] = "pow";
+    ConsensusType["ProofOfAuthority"] = "poa";
+})(ConsensusType || (ConsensusType = {}));
+var ConsensusAlgorithm;
+(function (ConsensusAlgorithm) {
+    ConsensusAlgorithm["Ethash"] = "ethash";
+    ConsensusAlgorithm["Clique"] = "clique";
+    ConsensusAlgorithm["Casper"] = "casper";
+})(ConsensusAlgorithm || (ConsensusAlgorithm = {}));
+var CustomChain;
+(function (CustomChain) {
+    /**
+     * Polygon (Matic) Mainnet
+     *
+     * - [Documentation](https://docs.matic.network/docs/develop/network-details/network)
+     */
+    CustomChain["PolygonMainnet"] = "polygon-mainnet";
+    /**
+     * Polygon (Matic) Mumbai Testnet
+     *
+     * - [Documentation](https://docs.matic.network/docs/develop/network-details/network)
+     */
+    CustomChain["PolygonMumbai"] = "polygon-mumbai";
+    /**
+     * Arbitrum One - mainnet for Arbitrum roll-up
+     *
+     * - [Documentation](https://developer.offchainlabs.com/public-chains)
+     */
+    CustomChain["ArbitrumOne"] = "arbitrum-one";
+    /**
+     * xDai EVM sidechain with a native stable token
+     *
+     * - [Documentation](https://www.xdaichain.com/)
+     */
+    CustomChain["xDaiChain"] = "x-dai-chain";
+    /**
+     * Optimistic Kovan - testnet for Optimism roll-up
+     *
+     * - [Documentation](https://community.optimism.io/docs/developers/tutorials.html)
+     */
+    CustomChain["OptimisticKovan"] = "optimistic-kovan";
+    /**
+     * Optimistic Ethereum - mainnet for Optimism roll-up
+     *
+     * - [Documentation](https://community.optimism.io/docs/developers/tutorials.html)
+     */
+    CustomChain["OptimisticEthereum"] = "optimistic-ethereum";
+})(CustomChain || (CustomChain = {}));
+
+var Status$1;
+(function (Status) {
+    Status["Draft"] = "draft";
+    Status["Review"] = "review";
+    Status["Final"] = "final";
+})(Status$1 || (Status$1 = {}));
+const EIPs = {
+    1153: {
+        comment: 'Transient storage opcodes',
+        url: 'https://eips.ethereum.org/EIPS/eip-1153',
+        status: Status$1.Review,
+        minimumHardfork: Hardfork.Chainstart,
+        requiredEIPs: [],
+        gasPrices: {
+            tstore: {
+                v: 100,
+                d: 'Base fee of the TSTORE opcode',
+            },
+            tload: {
+                v: 100,
+                d: 'Base fee of the TLOAD opcode',
+            },
+        },
+    },
+    1559: {
+        comment: 'Fee market change for ETH 1.0 chain',
+        url: 'https://eips.ethereum.org/EIPS/eip-1559',
+        status: Status$1.Final,
+        minimumHardfork: Hardfork.Berlin,
+        requiredEIPs: [2930],
+        gasConfig: {
+            baseFeeMaxChangeDenominator: {
+                v: 8,
+                d: 'Maximum base fee change denominator',
+            },
+            elasticityMultiplier: {
+                v: 2,
+                d: 'Maximum block gas target elasticity',
+            },
+            initialBaseFee: {
+                v: 1000000000,
+                d: 'Initial base fee on first EIP1559 block',
+            },
+        },
+    },
+    2315: {
+        comment: 'Simple subroutines for the EVM',
+        url: 'https://eips.ethereum.org/EIPS/eip-2315',
+        status: Status$1.Draft,
+        minimumHardfork: Hardfork.Istanbul,
+        requiredEIPs: [],
+        gasPrices: {
+            beginsub: {
+                v: 2,
+                d: 'Base fee of the BEGINSUB opcode',
+            },
+            returnsub: {
+                v: 5,
+                d: 'Base fee of the RETURNSUB opcode',
+            },
+            jumpsub: {
+                v: 10,
+                d: 'Base fee of the JUMPSUB opcode',
+            },
+        },
+    },
+    2565: {
+        comment: 'ModExp gas cost',
+        url: 'https://eips.ethereum.org/EIPS/eip-2565',
+        status: Status$1.Final,
+        minimumHardfork: Hardfork.Byzantium,
+        requiredEIPs: [],
+        gasPrices: {
+            modexpGquaddivisor: {
+                v: 3,
+                d: 'Gquaddivisor from modexp precompile for gas calculation',
+            },
+        },
+    },
+    2718: {
+        comment: 'Typed Transaction Envelope',
+        url: 'https://eips.ethereum.org/EIPS/eip-2718',
+        status: Status$1.Final,
+        minimumHardfork: Hardfork.Chainstart,
+        requiredEIPs: [],
+    },
+    2929: {
+        comment: 'Gas cost increases for state access opcodes',
+        url: 'https://eips.ethereum.org/EIPS/eip-2929',
+        status: Status$1.Final,
+        minimumHardfork: Hardfork.Chainstart,
+        requiredEIPs: [],
+        gasPrices: {
+            coldsload: {
+                v: 2100,
+                d: 'Gas cost of the first read of storage from a given location (per transaction)',
+            },
+            coldaccountaccess: {
+                v: 2600,
+                d: 'Gas cost of the first read of a given address (per transaction)',
+            },
+            warmstorageread: {
+                v: 100,
+                d: "Gas cost of reading storage locations which have already loaded 'cold'",
+            },
+            sstoreCleanGasEIP2200: {
+                v: 2900,
+                d: 'Once per SSTORE operation from clean non-zero to something else',
+            },
+            sstoreNoopGasEIP2200: {
+                v: 100,
+                d: "Once per SSTORE operation if the value doesn't change",
+            },
+            sstoreDirtyGasEIP2200: {
+                v: 100,
+                d: 'Once per SSTORE operation if a dirty value is changed',
+            },
+            sstoreInitRefundEIP2200: {
+                v: 19900,
+                d: 'Once per SSTORE operation for resetting to the original zero value',
+            },
+            sstoreCleanRefundEIP2200: {
+                v: 4900,
+                d: 'Once per SSTORE operation for resetting to the original non-zero value',
+            },
+            call: {
+                v: 0,
+                d: 'Base fee of the CALL opcode',
+            },
+            callcode: {
+                v: 0,
+                d: 'Base fee of the CALLCODE opcode',
+            },
+            delegatecall: {
+                v: 0,
+                d: 'Base fee of the DELEGATECALL opcode',
+            },
+            staticcall: {
+                v: 0,
+                d: 'Base fee of the STATICCALL opcode',
+            },
+            balance: {
+                v: 0,
+                d: 'Base fee of the BALANCE opcode',
+            },
+            extcodesize: {
+                v: 0,
+                d: 'Base fee of the EXTCODESIZE opcode',
+            },
+            extcodecopy: {
+                v: 0,
+                d: 'Base fee of the EXTCODECOPY opcode',
+            },
+            extcodehash: {
+                v: 0,
+                d: 'Base fee of the EXTCODEHASH opcode',
+            },
+            sload: {
+                v: 0,
+                d: 'Base fee of the SLOAD opcode',
+            },
+            sstore: {
+                v: 0,
+                d: 'Base fee of the SSTORE opcode',
+            },
+        },
+    },
+    2930: {
+        comment: 'Optional access lists',
+        url: 'https://eips.ethereum.org/EIPS/eip-2930',
+        status: Status$1.Final,
+        minimumHardfork: Hardfork.Istanbul,
+        requiredEIPs: [2718, 2929],
+        gasPrices: {
+            accessListStorageKeyCost: {
+                v: 1900,
+                d: 'Gas cost per storage key in an Access List transaction',
+            },
+            accessListAddressCost: {
+                v: 2400,
+                d: 'Gas cost per storage key in an Access List transaction',
+            },
+        },
+    },
+    3074: {
+        comment: 'AUTH and AUTHCALL opcodes',
+        url: 'https://eips.ethereum.org/EIPS/eip-3074',
+        status: Status$1.Review,
+        minimumHardfork: Hardfork.London,
+        requiredEIPs: [],
+        gasPrices: {
+            auth: {
+                v: 3100,
+                d: 'Gas cost of the AUTH opcode',
+            },
+            authcall: {
+                v: 0,
+                d: 'Gas cost of the AUTHCALL opcode',
+            },
+            authcallValueTransfer: {
+                v: 6700,
+                d: 'Paid for CALL when the value transfer is non-zero',
+            },
+        },
+    },
+    3198: {
+        comment: 'BASEFEE opcode',
+        url: 'https://eips.ethereum.org/EIPS/eip-3198',
+        status: Status$1.Final,
+        minimumHardfork: Hardfork.London,
+        requiredEIPs: [],
+        gasPrices: {
+            basefee: {
+                v: 2,
+                d: 'Gas cost of the BASEFEE opcode',
+            },
+        },
+    },
+    3529: {
+        comment: 'Reduction in refunds',
+        url: 'https://eips.ethereum.org/EIPS/eip-3529',
+        status: Status$1.Final,
+        minimumHardfork: Hardfork.Berlin,
+        requiredEIPs: [2929],
+        gasConfig: {
+            maxRefundQuotient: {
+                v: 5,
+                d: 'Maximum refund quotient; max tx refund is min(tx.gasUsed/maxRefundQuotient, tx.gasRefund)',
+            },
+        },
+        gasPrices: {
+            selfdestructRefund: {
+                v: 0,
+                d: 'Refunded following a selfdestruct operation',
+            },
+            sstoreClearRefundEIP2200: {
+                v: 4800,
+                d: 'Once per SSTORE operation for clearing an originally existing storage slot',
+            },
+        },
+    },
+    3540: {
+        comment: 'EVM Object Format (EOF) v1',
+        url: 'https://eips.ethereum.org/EIPS/eip-3540',
+        status: Status$1.Review,
+        minimumHardfork: Hardfork.London,
+        requiredEIPs: [3541],
+    },
+    3541: {
+        comment: 'Reject new contracts starting with the 0xEF byte',
+        url: 'https://eips.ethereum.org/EIPS/eip-3541',
+        status: Status$1.Final,
+        minimumHardfork: Hardfork.Berlin,
+        requiredEIPs: [],
+    },
+    3554: {
+        comment: 'Difficulty Bomb Delay to December 1st 2021',
+        url: 'https://eips.ethereum.org/EIPS/eip-3554',
+        status: Status$1.Final,
+        minimumHardfork: Hardfork.MuirGlacier,
+        requiredEIPs: [],
+        pow: {
+            difficultyBombDelay: {
+                v: 9500000,
+                d: 'the amount of blocks to delay the difficulty bomb with',
+            },
+        },
+    },
+    3607: {
+        comment: 'Reject transactions from senders with deployed code',
+        url: 'https://eips.ethereum.org/EIPS/eip-3607',
+        status: Status$1.Final,
+        minimumHardfork: Hardfork.Chainstart,
+        requiredEIPs: [],
+    },
+    3651: {
+        comment: 'Warm COINBASE',
+        url: 'https://eips.ethereum.org/EIPS/eip-3651',
+        status: Status$1.Review,
+        minimumHardfork: Hardfork.London,
+        requiredEIPs: [2929],
+    },
+    3670: {
+        comment: 'EOF - Code Validation',
+        url: 'https://eips.ethereum.org/EIPS/eip-3670',
+        status: 'Review',
+        minimumHardfork: Hardfork.London,
+        requiredEIPs: [3540],
+        gasConfig: {},
+        gasPrices: {},
+        vm: {},
+        pow: {},
+    },
+    3675: {
+        comment: 'Upgrade consensus to Proof-of-Stake',
+        url: 'https://eips.ethereum.org/EIPS/eip-3675',
+        status: Status$1.Final,
+        minimumHardfork: Hardfork.London,
+        requiredEIPs: [],
+    },
+    3855: {
+        comment: 'PUSH0 instruction',
+        url: 'https://eips.ethereum.org/EIPS/eip-3855',
+        status: Status$1.Review,
+        minimumHardfork: Hardfork.Chainstart,
+        requiredEIPs: [],
+        gasPrices: {
+            push0: {
+                v: 2,
+                d: 'Base fee of the PUSH0 opcode',
+            },
+        },
+    },
+    3860: {
+        comment: 'Limit and meter initcode',
+        url: 'https://eips.ethereum.org/EIPS/eip-3860',
+        status: Status$1.Review,
+        minimumHardfork: Hardfork.SpuriousDragon,
+        requiredEIPs: [],
+        gasPrices: {
+            initCodeWordCost: {
+                v: 2,
+                d: 'Gas to pay for each word (32 bytes) of initcode when creating a contract',
+            },
+        },
+        vm: {
+            maxInitCodeSize: {
+                v: 49152,
+                d: 'Maximum length of initialization code when creating a contract',
+            },
+        },
+    },
+    4345: {
+        comment: 'Difficulty Bomb Delay to June 2022',
+        url: 'https://eips.ethereum.org/EIPS/eip-4345',
+        status: Status$1.Final,
+        minimumHardfork: Hardfork.London,
+        requiredEIPs: [],
+        pow: {
+            difficultyBombDelay: {
+                v: 10700000,
+                d: 'the amount of blocks to delay the difficulty bomb with',
+            },
+        },
+    },
+    4399: {
+        comment: 'Supplant DIFFICULTY opcode with PREVRANDAO',
+        url: 'https://eips.ethereum.org/EIPS/eip-4399',
+        status: Status$1.Review,
+        minimumHardfork: Hardfork.London,
+        requiredEIPs: [],
+        gasPrices: {
+            prevrandao: {
+                v: 2,
+                d: 'Base fee of the PREVRANDAO opcode (previously DIFFICULTY)',
+            },
+        },
+    },
+    4788: {
+        comment: 'Beacon block root in the EVM',
+        url: 'https://eips.ethereum.org/EIPS/eip-4788',
+        status: Status$1.Draft,
+        minimumHardfork: Hardfork.Cancun,
+        requiredEIPs: [],
+        gasPrices: {
+            beaconrootCost: {
+                v: 4200,
+                d: 'Gas cost when calling the beaconroot stateful precompile',
+            },
+        },
+        vm: {
+            historicalRootsLength: {
+                v: 98304,
+                d: 'The modulo parameter of the beaconroot ring buffer in the beaconroot statefull precompile',
+            },
+        },
+    },
+    4844: {
+        comment: 'Shard Blob Transactions',
+        url: 'https://eips.ethereum.org/EIPS/eip-4844',
+        status: Status$1.Draft,
+        minimumHardfork: Hardfork.Paris,
+        requiredEIPs: [1559, 2718, 2930, 4895],
+        gasConfig: {
+            blobGasPerBlob: {
+                v: 131072,
+                d: 'The base fee for blob gas per blob',
+            },
+            targetBlobGasPerBlock: {
+                v: 393216,
+                d: 'The target blob gas consumed per block',
+            },
+            maxblobGasPerBlock: {
+                v: 786432,
+                d: 'The max blob gas allowable per block',
+            },
+            blobGasPriceUpdateFraction: {
+                v: 3338477,
+                d: 'The denominator used in the exponential when calculating a blob gas price',
+            },
+        },
+        gasPrices: {
+            simpleGasPerBlob: {
+                v: 12000,
+                d: 'The basic gas fee for each blob',
+            },
+            minBlobGasPrice: {
+                v: 1,
+                d: 'The minimum fee per blob gas',
+            },
+            kzgPointEvaluationGasPrecompilePrice: {
+                v: 50000,
+                d: 'The fee associated with the point evaluation precompile',
+            },
+            blobhash: {
+                v: 3,
+                d: 'Base fee of the BLOBHASH opcode',
+            },
+        },
+        sharding: {
+            blobCommitmentVersionKzg: {
+                v: 1,
+                d: 'The number indicated a versioned hash is a KZG commitment',
+            },
+            fieldElementsPerBlob: {
+                v: 4096,
+                d: 'The number of field elements allowed per blob',
+            },
+        },
+    },
+    4895: {
+        comment: 'Beacon chain push withdrawals as operations',
+        url: 'https://eips.ethereum.org/EIPS/eip-4895',
+        status: Status$1.Review,
+        minimumHardfork: Hardfork.Paris,
+        requiredEIPs: [],
+    },
+    5133: {
+        comment: 'Delaying Difficulty Bomb to mid-September 2022',
+        url: 'https://eips.ethereum.org/EIPS/eip-5133',
+        status: Status$1.Draft,
+        minimumHardfork: Hardfork.GrayGlacier,
+        requiredEIPs: [],
+        pow: {
+            difficultyBombDelay: {
+                v: 11400000,
+                d: 'the amount of blocks to delay the difficulty bomb with',
+            },
+        },
+    },
+    5656: {
+        comment: 'MCOPY - Memory copying instruction',
+        url: 'https://eips.ethereum.org/EIPS/eip-5656',
+        status: Status$1.Draft,
+        minimumHardfork: Hardfork.Shanghai,
+        requiredEIPs: [],
+        gasPrices: {
+            mcopy: {
+                v: 3,
+                d: 'Base fee of the MCOPY opcode',
+            },
+        },
+    },
+    6780: {
+        comment: 'SELFDESTRUCT only in same transaction',
+        url: 'https://eips.ethereum.org/EIPS/eip-6780',
+        status: Status$1.Draft,
+        minimumHardfork: Hardfork.London,
+        requiredEIPs: [],
+    },
+};
+
+var Status;
+(function (Status) {
+    Status["Draft"] = "draft";
+    Status["Review"] = "review";
+    Status["Final"] = "final";
+})(Status || (Status = {}));
+const hardforks = {
+    chainstart: {
+        name: 'chainstart',
+        comment: 'Start of the Ethereum main chain',
+        url: '',
+        status: Status.Final,
+        gasConfig: {
+            minGasLimit: {
+                v: 5000,
+                d: 'Minimum the gas limit may ever be',
+            },
+            gasLimitBoundDivisor: {
+                v: 1024,
+                d: 'The bound divisor of the gas limit, used in update calculations',
+            },
+            maxRefundQuotient: {
+                v: 2,
+                d: 'Maximum refund quotient; max tx refund is min(tx.gasUsed/maxRefundQuotient, tx.gasRefund)',
+            },
+        },
+        gasPrices: {
+            base: {
+                v: 2,
+                d: 'Gas base cost, used e.g. for ChainID opcode (Istanbul)',
+            },
+            exp: {
+                v: 10,
+                d: 'Base fee of the EXP opcode',
+            },
+            expByte: {
+                v: 10,
+                d: 'Times ceil(log256(exponent)) for the EXP instruction',
+            },
+            keccak256: {
+                v: 30,
+                d: 'Base fee of the SHA3 opcode',
+            },
+            keccak256Word: {
+                v: 6,
+                d: "Once per word of the SHA3 operation's data",
+            },
+            sload: {
+                v: 50,
+                d: 'Base fee of the SLOAD opcode',
+            },
+            sstoreSet: {
+                v: 20000,
+                d: 'Once per SSTORE operation if the zeroness changes from zero',
+            },
+            sstoreReset: {
+                v: 5000,
+                d: 'Once per SSTORE operation if the zeroness does not change from zero',
+            },
+            sstoreRefund: {
+                v: 15000,
+                d: 'Once per SSTORE operation if the zeroness changes to zero',
+            },
+            jumpdest: {
+                v: 1,
+                d: 'Base fee of the JUMPDEST opcode',
+            },
+            log: {
+                v: 375,
+                d: 'Base fee of the LOG opcode',
+            },
+            logData: {
+                v: 8,
+                d: "Per byte in a LOG* operation's data",
+            },
+            logTopic: {
+                v: 375,
+                d: 'Multiplied by the * of the LOG*, per LOG transaction. e.g. LOG0 incurs 0 * c_txLogTopicGas, LOG4 incurs 4 * c_txLogTopicGas',
+            },
+            create: {
+                v: 32000,
+                d: 'Base fee of the CREATE opcode',
+            },
+            call: {
+                v: 40,
+                d: 'Base fee of the CALL opcode',
+            },
+            callStipend: {
+                v: 2300,
+                d: 'Free gas given at beginning of call',
+            },
+            callValueTransfer: {
+                v: 9000,
+                d: 'Paid for CALL when the value transfor is non-zero',
+            },
+            callNewAccount: {
+                v: 25000,
+                d: "Paid for CALL when the destination address didn't exist prior",
+            },
+            selfdestructRefund: {
+                v: 24000,
+                d: 'Refunded following a selfdestruct operation',
+            },
+            memory: {
+                v: 3,
+                d: 'Times the address of the (highest referenced byte in memory + 1). NOTE: referencing happens on read, write and in instructions such as RETURN and CALL',
+            },
+            quadCoeffDiv: {
+                v: 512,
+                d: 'Divisor for the quadratic particle of the memory cost equation',
+            },
+            createData: {
+                v: 200,
+                d: '',
+            },
+            tx: {
+                v: 21000,
+                d: 'Per transaction. NOTE: Not payable on data of calls between transactions',
+            },
+            txCreation: {
+                v: 32000,
+                d: 'The cost of creating a contract via tx',
+            },
+            txDataZero: {
+                v: 4,
+                d: 'Per byte of data attached to a transaction that equals zero. NOTE: Not payable on data of calls between transactions',
+            },
+            txDataNonZero: {
+                v: 68,
+                d: 'Per byte of data attached to a transaction that is not equal to zero. NOTE: Not payable on data of calls between transactions',
+            },
+            copy: {
+                v: 3,
+                d: 'Multiplied by the number of 32-byte words that are copied (round up) for any *COPY operation and added',
+            },
+            ecRecover: {
+                v: 3000,
+                d: '',
+            },
+            sha256: {
+                v: 60,
+                d: '',
+            },
+            sha256Word: {
+                v: 12,
+                d: '',
+            },
+            ripemd160: {
+                v: 600,
+                d: '',
+            },
+            ripemd160Word: {
+                v: 120,
+                d: '',
+            },
+            identity: {
+                v: 15,
+                d: '',
+            },
+            identityWord: {
+                v: 3,
+                d: '',
+            },
+            stop: {
+                v: 0,
+                d: 'Base fee of the STOP opcode',
+            },
+            add: {
+                v: 3,
+                d: 'Base fee of the ADD opcode',
+            },
+            mul: {
+                v: 5,
+                d: 'Base fee of the MUL opcode',
+            },
+            sub: {
+                v: 3,
+                d: 'Base fee of the SUB opcode',
+            },
+            div: {
+                v: 5,
+                d: 'Base fee of the DIV opcode',
+            },
+            sdiv: {
+                v: 5,
+                d: 'Base fee of the SDIV opcode',
+            },
+            mod: {
+                v: 5,
+                d: 'Base fee of the MOD opcode',
+            },
+            smod: {
+                v: 5,
+                d: 'Base fee of the SMOD opcode',
+            },
+            addmod: {
+                v: 8,
+                d: 'Base fee of the ADDMOD opcode',
+            },
+            mulmod: {
+                v: 8,
+                d: 'Base fee of the MULMOD opcode',
+            },
+            signextend: {
+                v: 5,
+                d: 'Base fee of the SIGNEXTEND opcode',
+            },
+            lt: {
+                v: 3,
+                d: 'Base fee of the LT opcode',
+            },
+            gt: {
+                v: 3,
+                d: 'Base fee of the GT opcode',
+            },
+            slt: {
+                v: 3,
+                d: 'Base fee of the SLT opcode',
+            },
+            sgt: {
+                v: 3,
+                d: 'Base fee of the SGT opcode',
+            },
+            eq: {
+                v: 3,
+                d: 'Base fee of the EQ opcode',
+            },
+            iszero: {
+                v: 3,
+                d: 'Base fee of the ISZERO opcode',
+            },
+            and: {
+                v: 3,
+                d: 'Base fee of the AND opcode',
+            },
+            or: {
+                v: 3,
+                d: 'Base fee of the OR opcode',
+            },
+            xor: {
+                v: 3,
+                d: 'Base fee of the XOR opcode',
+            },
+            not: {
+                v: 3,
+                d: 'Base fee of the NOT opcode',
+            },
+            byte: {
+                v: 3,
+                d: 'Base fee of the BYTE opcode',
+            },
+            address: {
+                v: 2,
+                d: 'Base fee of the ADDRESS opcode',
+            },
+            balance: {
+                v: 20,
+                d: 'Base fee of the BALANCE opcode',
+            },
+            origin: {
+                v: 2,
+                d: 'Base fee of the ORIGIN opcode',
+            },
+            caller: {
+                v: 2,
+                d: 'Base fee of the CALLER opcode',
+            },
+            callvalue: {
+                v: 2,
+                d: 'Base fee of the CALLVALUE opcode',
+            },
+            calldataload: {
+                v: 3,
+                d: 'Base fee of the CALLDATALOAD opcode',
+            },
+            calldatasize: {
+                v: 2,
+                d: 'Base fee of the CALLDATASIZE opcode',
+            },
+            calldatacopy: {
+                v: 3,
+                d: 'Base fee of the CALLDATACOPY opcode',
+            },
+            codesize: {
+                v: 2,
+                d: 'Base fee of the CODESIZE opcode',
+            },
+            codecopy: {
+                v: 3,
+                d: 'Base fee of the CODECOPY opcode',
+            },
+            gasprice: {
+                v: 2,
+                d: 'Base fee of the GASPRICE opcode',
+            },
+            extcodesize: {
+                v: 20,
+                d: 'Base fee of the EXTCODESIZE opcode',
+            },
+            extcodecopy: {
+                v: 20,
+                d: 'Base fee of the EXTCODECOPY opcode',
+            },
+            blockhash: {
+                v: 20,
+                d: 'Base fee of the BLOCKHASH opcode',
+            },
+            coinbase: {
+                v: 2,
+                d: 'Base fee of the COINBASE opcode',
+            },
+            timestamp: {
+                v: 2,
+                d: 'Base fee of the TIMESTAMP opcode',
+            },
+            number: {
+                v: 2,
+                d: 'Base fee of the NUMBER opcode',
+            },
+            difficulty: {
+                v: 2,
+                d: 'Base fee of the DIFFICULTY opcode',
+            },
+            gaslimit: {
+                v: 2,
+                d: 'Base fee of the GASLIMIT opcode',
+            },
+            pop: {
+                v: 2,
+                d: 'Base fee of the POP opcode',
+            },
+            mload: {
+                v: 3,
+                d: 'Base fee of the MLOAD opcode',
+            },
+            mstore: {
+                v: 3,
+                d: 'Base fee of the MSTORE opcode',
+            },
+            mstore8: {
+                v: 3,
+                d: 'Base fee of the MSTORE8 opcode',
+            },
+            sstore: {
+                v: 0,
+                d: 'Base fee of the SSTORE opcode',
+            },
+            jump: {
+                v: 8,
+                d: 'Base fee of the JUMP opcode',
+            },
+            jumpi: {
+                v: 10,
+                d: 'Base fee of the JUMPI opcode',
+            },
+            pc: {
+                v: 2,
+                d: 'Base fee of the PC opcode',
+            },
+            msize: {
+                v: 2,
+                d: 'Base fee of the MSIZE opcode',
+            },
+            gas: {
+                v: 2,
+                d: 'Base fee of the GAS opcode',
+            },
+            push: {
+                v: 3,
+                d: 'Base fee of the PUSH opcode',
+            },
+            dup: {
+                v: 3,
+                d: 'Base fee of the DUP opcode',
+            },
+            swap: {
+                v: 3,
+                d: 'Base fee of the SWAP opcode',
+            },
+            callcode: {
+                v: 40,
+                d: 'Base fee of the CALLCODE opcode',
+            },
+            return: {
+                v: 0,
+                d: 'Base fee of the RETURN opcode',
+            },
+            invalid: {
+                v: 0,
+                d: 'Base fee of the INVALID opcode',
+            },
+            selfdestruct: {
+                v: 0,
+                d: 'Base fee of the SELFDESTRUCT opcode',
+            },
+        },
+        vm: {
+            stackLimit: {
+                v: 1024,
+                d: 'Maximum size of VM stack allowed',
+            },
+            callCreateDepth: {
+                v: 1024,
+                d: 'Maximum depth of call/create stack',
+            },
+            maxExtraDataSize: {
+                v: 32,
+                d: 'Maximum size extra data may be after Genesis',
+            },
+        },
+        pow: {
+            minimumDifficulty: {
+                v: 131072,
+                d: 'The minimum that the difficulty may ever be',
+            },
+            difficultyBoundDivisor: {
+                v: 2048,
+                d: 'The bound divisor of the difficulty, used in the update calculations',
+            },
+            durationLimit: {
+                v: 13,
+                d: 'The decision boundary on the blocktime duration used to determine whether difficulty should go up or not',
+            },
+            epochDuration: {
+                v: 30000,
+                d: 'Duration between proof-of-work epochs',
+            },
+            timebombPeriod: {
+                v: 100000,
+                d: 'Exponential difficulty timebomb period',
+            },
+            minerReward: {
+                v: BigInt('5000000000000000000'),
+                d: 'the amount a miner get rewarded for mining a block',
+            },
+            difficultyBombDelay: {
+                v: 0,
+                d: 'the amount of blocks to delay the difficulty bomb with',
+            },
+        },
+    },
+    homestead: {
+        name: 'homestead',
+        comment: 'Homestead hardfork with protocol and network changes',
+        url: 'https://eips.ethereum.org/EIPS/eip-606',
+        status: Status.Final,
+        gasPrices: {
+            delegatecall: {
+                v: 40,
+                d: 'Base fee of the DELEGATECALL opcode',
+            },
+        },
+    },
+    dao: {
+        name: 'dao',
+        comment: 'DAO rescue hardfork',
+        url: 'https://eips.ethereum.org/EIPS/eip-779',
+        status: Status.Final,
+    },
+    tangerineWhistle: {
+        name: 'tangerineWhistle',
+        comment: 'Hardfork with gas cost changes for IO-heavy operations',
+        url: 'https://eips.ethereum.org/EIPS/eip-608',
+        status: Status.Final,
+        gasPrices: {
+            sload: {
+                v: 200,
+                d: 'Once per SLOAD operation',
+            },
+            call: {
+                v: 700,
+                d: 'Once per CALL operation & message call transaction',
+            },
+            extcodesize: {
+                v: 700,
+                d: 'Base fee of the EXTCODESIZE opcode',
+            },
+            extcodecopy: {
+                v: 700,
+                d: 'Base fee of the EXTCODECOPY opcode',
+            },
+            balance: {
+                v: 400,
+                d: 'Base fee of the BALANCE opcode',
+            },
+            delegatecall: {
+                v: 700,
+                d: 'Base fee of the DELEGATECALL opcode',
+            },
+            callcode: {
+                v: 700,
+                d: 'Base fee of the CALLCODE opcode',
+            },
+            selfdestruct: {
+                v: 5000,
+                d: 'Base fee of the SELFDESTRUCT opcode',
+            },
+        },
+    },
+    spuriousDragon: {
+        name: 'spuriousDragon',
+        comment: 'HF with EIPs for simple replay attack protection, EXP cost increase, state trie clearing, contract code size limit',
+        url: 'https://eips.ethereum.org/EIPS/eip-607',
+        status: Status.Final,
+        gasPrices: {
+            expByte: {
+                v: 50,
+                d: 'Times ceil(log256(exponent)) for the EXP instruction',
+            },
+        },
+        vm: {
+            maxCodeSize: {
+                v: 24576,
+                d: 'Maximum length of contract code',
+            },
+        },
+    },
+    byzantium: {
+        name: 'byzantium',
+        comment: 'Hardfork with new precompiles, instructions and other protocol changes',
+        url: 'https://eips.ethereum.org/EIPS/eip-609',
+        status: Status.Final,
+        gasPrices: {
+            modexpGquaddivisor: {
+                v: 20,
+                d: 'Gquaddivisor from modexp precompile for gas calculation',
+            },
+            ecAdd: {
+                v: 500,
+                d: 'Gas costs for curve addition precompile',
+            },
+            ecMul: {
+                v: 40000,
+                d: 'Gas costs for curve multiplication precompile',
+            },
+            ecPairing: {
+                v: 100000,
+                d: 'Base gas costs for curve pairing precompile',
+            },
+            ecPairingWord: {
+                v: 80000,
+                d: 'Gas costs regarding curve pairing precompile input length',
+            },
+            revert: {
+                v: 0,
+                d: 'Base fee of the REVERT opcode',
+            },
+            staticcall: {
+                v: 700,
+                d: 'Base fee of the STATICCALL opcode',
+            },
+            returndatasize: {
+                v: 2,
+                d: 'Base fee of the RETURNDATASIZE opcode',
+            },
+            returndatacopy: {
+                v: 3,
+                d: 'Base fee of the RETURNDATACOPY opcode',
+            },
+        },
+        pow: {
+            minerReward: {
+                v: BigInt('3000000000000000000'),
+                d: 'the amount a miner get rewarded for mining a block',
+            },
+            difficultyBombDelay: {
+                v: 3000000,
+                d: 'the amount of blocks to delay the difficulty bomb with',
+            },
+        },
+    },
+    constantinople: {
+        name: 'constantinople',
+        comment: 'Postponed hardfork including EIP-1283 (SSTORE gas metering changes)',
+        url: 'https://eips.ethereum.org/EIPS/eip-1013',
+        status: Status.Final,
+        gasPrices: {
+            netSstoreNoopGas: {
+                v: 200,
+                d: "Once per SSTORE operation if the value doesn't change",
+            },
+            netSstoreInitGas: {
+                v: 20000,
+                d: 'Once per SSTORE operation from clean zero',
+            },
+            netSstoreCleanGas: {
+                v: 5000,
+                d: 'Once per SSTORE operation from clean non-zero',
+            },
+            netSstoreDirtyGas: {
+                v: 200,
+                d: 'Once per SSTORE operation from dirty',
+            },
+            netSstoreClearRefund: {
+                v: 15000,
+                d: 'Once per SSTORE operation for clearing an originally existing storage slot',
+            },
+            netSstoreResetRefund: {
+                v: 4800,
+                d: 'Once per SSTORE operation for resetting to the original non-zero value',
+            },
+            netSstoreResetClearRefund: {
+                v: 19800,
+                d: 'Once per SSTORE operation for resetting to the original zero value',
+            },
+            shl: {
+                v: 3,
+                d: 'Base fee of the SHL opcode',
+            },
+            shr: {
+                v: 3,
+                d: 'Base fee of the SHR opcode',
+            },
+            sar: {
+                v: 3,
+                d: 'Base fee of the SAR opcode',
+            },
+            extcodehash: {
+                v: 400,
+                d: 'Base fee of the EXTCODEHASH opcode',
+            },
+            create2: {
+                v: 32000,
+                d: 'Base fee of the CREATE2 opcode',
+            },
+        },
+        pow: {
+            minerReward: {
+                v: BigInt('2000000000000000000'),
+                d: 'The amount a miner gets rewarded for mining a block',
+            },
+            difficultyBombDelay: {
+                v: 5000000,
+                d: 'the amount of blocks to delay the difficulty bomb with',
+            },
+        },
+    },
+    petersburg: {
+        name: 'petersburg',
+        comment: 'Aka constantinopleFix, removes EIP-1283, activate together with or after constantinople',
+        url: 'https://eips.ethereum.org/EIPS/eip-1716',
+        status: Status.Final,
+        gasPrices: {
+            netSstoreNoopGas: {
+                v: null,
+                d: 'Removed along EIP-1283',
+            },
+            netSstoreInitGas: {
+                v: null,
+                d: 'Removed along EIP-1283',
+            },
+            netSstoreCleanGas: {
+                v: null,
+                d: 'Removed along EIP-1283',
+            },
+            netSstoreDirtyGas: {
+                v: null,
+                d: 'Removed along EIP-1283',
+            },
+            netSstoreClearRefund: {
+                v: null,
+                d: 'Removed along EIP-1283',
+            },
+            netSstoreResetRefund: {
+                v: null,
+                d: 'Removed along EIP-1283',
+            },
+            netSstoreResetClearRefund: {
+                v: null,
+                d: 'Removed along EIP-1283',
+            },
+        },
+    },
+    istanbul: {
+        name: 'istanbul',
+        comment: 'HF targeted for December 2019 following the Constantinople/Petersburg HF',
+        url: 'https://eips.ethereum.org/EIPS/eip-1679',
+        status: Status.Final,
+        gasConfig: {},
+        gasPrices: {
+            blake2Round: {
+                v: 1,
+                d: 'Gas cost per round for the Blake2 F precompile',
+            },
+            ecAdd: {
+                v: 150,
+                d: 'Gas costs for curve addition precompile',
+            },
+            ecMul: {
+                v: 6000,
+                d: 'Gas costs for curve multiplication precompile',
+            },
+            ecPairing: {
+                v: 45000,
+                d: 'Base gas costs for curve pairing precompile',
+            },
+            ecPairingWord: {
+                v: 34000,
+                d: 'Gas costs regarding curve pairing precompile input length',
+            },
+            txDataNonZero: {
+                v: 16,
+                d: 'Per byte of data attached to a transaction that is not equal to zero. NOTE: Not payable on data of calls between transactions',
+            },
+            sstoreSentryGasEIP2200: {
+                v: 2300,
+                d: 'Minimum gas required to be present for an SSTORE call, not consumed',
+            },
+            sstoreNoopGasEIP2200: {
+                v: 800,
+                d: "Once per SSTORE operation if the value doesn't change",
+            },
+            sstoreDirtyGasEIP2200: {
+                v: 800,
+                d: 'Once per SSTORE operation if a dirty value is changed',
+            },
+            sstoreInitGasEIP2200: {
+                v: 20000,
+                d: 'Once per SSTORE operation from clean zero to non-zero',
+            },
+            sstoreInitRefundEIP2200: {
+                v: 19200,
+                d: 'Once per SSTORE operation for resetting to the original zero value',
+            },
+            sstoreCleanGasEIP2200: {
+                v: 5000,
+                d: 'Once per SSTORE operation from clean non-zero to something else',
+            },
+            sstoreCleanRefundEIP2200: {
+                v: 4200,
+                d: 'Once per SSTORE operation for resetting to the original non-zero value',
+            },
+            sstoreClearRefundEIP2200: {
+                v: 15000,
+                d: 'Once per SSTORE operation for clearing an originally existing storage slot',
+            },
+            balance: {
+                v: 700,
+                d: 'Base fee of the BALANCE opcode',
+            },
+            extcodehash: {
+                v: 700,
+                d: 'Base fee of the EXTCODEHASH opcode',
+            },
+            chainid: {
+                v: 2,
+                d: 'Base fee of the CHAINID opcode',
+            },
+            selfbalance: {
+                v: 5,
+                d: 'Base fee of the SELFBALANCE opcode',
+            },
+            sload: {
+                v: 800,
+                d: 'Base fee of the SLOAD opcode',
+            },
+        },
+    },
+    muirGlacier: {
+        name: 'muirGlacier',
+        comment: 'HF to delay the difficulty bomb',
+        url: 'https://eips.ethereum.org/EIPS/eip-2384',
+        status: Status.Final,
+        pow: {
+            difficultyBombDelay: {
+                v: 9000000,
+                d: 'the amount of blocks to delay the difficulty bomb with',
+            },
+        },
+    },
+    berlin: {
+        name: 'berlin',
+        comment: 'HF targeted for July 2020 following the Muir Glacier HF',
+        url: 'https://eips.ethereum.org/EIPS/eip-2070',
+        status: Status.Final,
+        eips: [2565, 2929, 2718, 2930],
+    },
+    london: {
+        name: 'london',
+        comment: 'HF targeted for July 2021 following the Berlin fork',
+        url: 'https://github.com/ethereum/eth1.0-specs/blob/master/network-upgrades/mainnet-upgrades/london.md',
+        status: Status.Final,
+        eips: [1559, 3198, 3529, 3541],
+    },
+    arrowGlacier: {
+        name: 'arrowGlacier',
+        comment: 'HF to delay the difficulty bomb',
+        url: 'https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades/arrow-glacier.md',
+        status: Status.Final,
+        eips: [4345],
+    },
+    grayGlacier: {
+        name: 'grayGlacier',
+        comment: 'Delaying the difficulty bomb to Mid September 2022',
+        url: 'https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades/gray-glacier.md',
+        status: Status.Final,
+        eips: [5133],
+    },
+    paris: {
+        name: 'paris',
+        comment: 'Hardfork to upgrade the consensus mechanism to Proof-of-Stake',
+        url: 'https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades/merge.md',
+        status: Status.Final,
+        consensus: {
+            type: 'pos',
+            algorithm: 'casper',
+            casper: {},
+        },
+        eips: [3675, 4399],
+    },
+    mergeForkIdTransition: {
+        name: 'mergeForkIdTransition',
+        comment: 'Pre-merge hardfork to fork off non-upgraded clients',
+        url: 'https://eips.ethereum.org/EIPS/eip-3675',
+        status: Status.Final,
+        eips: [],
+    },
+    shanghai: {
+        name: 'shanghai',
+        comment: 'Next feature hardfork after the merge hardfork having withdrawals, warm coinbase, push0, limit/meter initcode',
+        url: 'https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades/shanghai.md',
+        status: Status.Final,
+        eips: [3651, 3855, 3860, 4895],
+    },
+    cancun: {
+        name: 'cancun',
+        comment: 'Next feature hardfork after the shanghai having proto-danksharding EIP 4844 blobs (still WIP hence not for production use), transient storage opcodes, parent beacon block root availability in EVM and selfdestruct only in same transaction',
+        url: 'https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades/cancun.md',
+        status: Status.Final,
+        eips: [1153, 4844, 4788, 5656, 6780],
+    },
+};
+
+/**
+ * Transforms Geth formatted nonce (i.e. hex string) to 8 byte 0x-prefixed string used internally
+ * @param nonce string parsed from the Geth genesis file
+ * @returns nonce as a 0x-prefixed 8 byte string
+ */
+function formatNonce(nonce) {
+    if (!nonce || nonce === '0x0') {
+        return '0x0000000000000000';
+    }
+    if (isHexPrefixed(nonce)) {
+        return '0x' + stripHexPrefix(nonce).padStart(16, '0');
+    }
+    return '0x' + nonce.padStart(16, '0');
+}
+/**
+ * Converts Geth genesis parameters to an EthereumJS compatible `CommonOpts` object
+ * @param json object representing the Geth genesis file
+ * @param optional mergeForkIdPostMerge which clarifies the placement of MergeForkIdTransition
+ * hardfork, which by default is post merge as with the merged eth networks but could also come
+ * before merge like in kiln genesis
+ * @returns genesis parameters in a `CommonOpts` compliant object
+ */
+function parseGethParams(json, mergeForkIdPostMerge = true) {
+    const { name, config, difficulty, mixHash, gasLimit, coinbase, baseFeePerGas, excessBlobGas, } = json;
+    let { extraData, timestamp, nonce } = json;
+    const genesisTimestamp = Number(timestamp);
+    const { chainId } = config;
+    // geth is not strictly putting empty fields with a 0x prefix
+    if (extraData === '') {
+        extraData = '0x';
+    }
+    // geth may use number for timestamp
+    if (!isHexPrefixed(timestamp)) {
+        timestamp = intToHex(parseInt(timestamp));
+    }
+    // geth may not give us a nonce strictly formatted to an 8 byte hex string
+    if (nonce.length !== 18) {
+        nonce = formatNonce(nonce);
+    }
+    // EIP155 and EIP158 are both part of Spurious Dragon hardfork and must occur at the same time
+    // but have different configuration parameters in geth genesis parameters
+    if (config.eip155Block !== config.eip158Block) {
+        throw new Error('EIP155 block number must equal EIP 158 block number since both are part of SpuriousDragon hardfork and the client only supports activating the full hardfork');
+    }
+    const params = {
+        name,
+        chainId,
+        networkId: chainId,
+        genesis: {
+            timestamp,
+            gasLimit,
+            difficulty,
+            nonce,
+            extraData,
+            mixHash,
+            coinbase,
+            baseFeePerGas,
+            excessBlobGas,
+        },
+        hardfork: undefined,
+        hardforks: [],
+        bootstrapNodes: [],
+        consensus: config.clique !== undefined
+            ? {
+                type: 'poa',
+                algorithm: 'clique',
+                clique: {
+                    // The recent geth genesis seems to be using blockperiodseconds
+                    // and epochlength for clique specification
+                    // see: https://hackmd.io/PqZgMpnkSWCWv5joJoFymQ
+                    period: config.clique.period ?? config.clique.blockperiodseconds,
+                    epoch: config.clique.epoch ?? config.clique.epochlength,
+                },
+            }
+            : {
+                type: 'pow',
+                algorithm: 'ethash',
+                ethash: {},
+            },
+    };
+    const forkMap = {
+        [Hardfork.Homestead]: { name: 'homesteadBlock' },
+        [Hardfork.Dao]: { name: 'daoForkBlock' },
+        [Hardfork.TangerineWhistle]: { name: 'eip150Block' },
+        [Hardfork.SpuriousDragon]: { name: 'eip155Block' },
+        [Hardfork.Byzantium]: { name: 'byzantiumBlock' },
+        [Hardfork.Constantinople]: { name: 'constantinopleBlock' },
+        [Hardfork.Petersburg]: { name: 'petersburgBlock' },
+        [Hardfork.Istanbul]: { name: 'istanbulBlock' },
+        [Hardfork.MuirGlacier]: { name: 'muirGlacierBlock' },
+        [Hardfork.Berlin]: { name: 'berlinBlock' },
+        [Hardfork.London]: { name: 'londonBlock' },
+        [Hardfork.MergeForkIdTransition]: { name: 'mergeForkBlock', postMerge: mergeForkIdPostMerge },
+        [Hardfork.Shanghai]: { name: 'shanghaiTime', postMerge: true, isTimestamp: true },
+        [Hardfork.Cancun]: { name: 'cancunTime', postMerge: true, isTimestamp: true },
+    };
+    // forkMapRev is the map from config field name to Hardfork
+    const forkMapRev = Object.keys(forkMap).reduce((acc, elem) => {
+        acc[forkMap[elem].name] = elem;
+        return acc;
+    }, {});
+    const configHardforkNames = Object.keys(config).filter((key) => forkMapRev[key] !== undefined && config[key] !== undefined && config[key] !== null);
+    params.hardforks = configHardforkNames
+        .map((nameBlock) => ({
+        name: forkMapRev[nameBlock],
+        block: forkMap[forkMapRev[nameBlock]].isTimestamp === true || typeof config[nameBlock] !== 'number'
+            ? null
+            : config[nameBlock],
+        timestamp: forkMap[forkMapRev[nameBlock]].isTimestamp === true && typeof config[nameBlock] === 'number'
+            ? config[nameBlock]
+            : undefined,
+    }))
+        .filter((fork) => fork.block !== null || fork.timestamp !== undefined);
+    params.hardforks.sort(function (a, b) {
+        return (a.block ?? Infinity) - (b.block ?? Infinity);
+    });
+    params.hardforks.sort(function (a, b) {
+        return (a.timestamp ?? genesisTimestamp) - (b.timestamp ?? genesisTimestamp);
+    });
+    if (config.terminalTotalDifficulty !== undefined) {
+        // Following points need to be considered for placement of merge hf
+        // - Merge hardfork can't be placed at genesis
+        // - Place merge hf before any hardforks that require CL participation for e.g. withdrawals
+        // - Merge hardfork has to be placed just after genesis if any of the genesis hardforks make CL
+        //   necessary for e.g. withdrawals
+        const mergeConfig = {
+            name: Hardfork.Paris,
+            ttd: config.terminalTotalDifficulty,
+            block: null,
+        };
+        // Merge hardfork has to be placed before first hardfork that is dependent on merge
+        const postMergeIndex = params.hardforks.findIndex((hf) => forkMap[hf.name]?.postMerge === true);
+        if (postMergeIndex !== -1) {
+            params.hardforks.splice(postMergeIndex, 0, mergeConfig);
+        }
+        else {
+            params.hardforks.push(mergeConfig);
+        }
+    }
+    const latestHardfork = params.hardforks.length > 0 ? params.hardforks.slice(-1)[0] : undefined;
+    params.hardfork = latestHardfork?.name;
+    params.hardforks.unshift({ name: Hardfork.Chainstart, block: 0 });
+    return params;
+}
+/**
+ * Parses a genesis.json exported from Geth into parameters for Common instance
+ * @param json representing the Geth genesis file
+ * @param name optional chain name
+ * @returns parsed params
+ */
+function parseGethGenesis(json, name, mergeForkIdPostMerge) {
+    try {
+        if (['config', 'difficulty', 'gasLimit', 'alloc'].some((field) => !(field in json))) {
+            throw new Error('Invalid format, expected geth genesis fields missing');
+        }
+        if (name !== undefined) {
+            json.name = name;
+        }
+        return parseGethParams(json, mergeForkIdPostMerge);
+    }
+    catch (e) {
+        throw new Error(`Error parsing parameters file: ${e.message}`);
+    }
+}
+
+/**
+ * Common class to access chain and hardfork parameters and to provide
+ * a unified and shared view on the network and hardfork state.
+ *
+ * Use the {@link Common.custom} static constructor for creating simple
+ * custom chain {@link Common} objects (more complete custom chain setups
+ * can be created via the main constructor and the {@link CommonOpts.customChains} parameter).
+ */
+class Common {
+    constructor(opts) {
+        this._eips = [];
+        this.events = new EventEmitter();
+        this._customChains = opts.customChains ?? [];
+        this._chainParams = this.setChain(opts.chain);
+        this.DEFAULT_HARDFORK = this._chainParams.defaultHardfork ?? Hardfork.Shanghai;
+        // Assign hardfork changes in the sequence of the applied hardforks
+        this.HARDFORK_CHANGES = this.hardforks().map((hf) => [
+            hf.name,
+            hardforks[hf.name],
+        ]);
+        this._hardfork = this.DEFAULT_HARDFORK;
+        if (opts.hardfork !== undefined) {
+            this.setHardfork(opts.hardfork);
+        }
+        if (opts.eips) {
+            this.setEIPs(opts.eips);
+        }
+    }
+    /**
+     * Creates a {@link Common} object for a custom chain, based on a standard one.
+     *
+     * It uses all the {@link Chain} parameters from the {@link baseChain} option except the ones overridden
+     * in a provided {@link chainParamsOrName} dictionary. Some usage example:
+     *
+     * ```javascript
+     * Common.custom({chainId: 123})
+     * ```
+     *
+     * There are also selected supported custom chains which can be initialized by using one of the
+     * {@link CustomChains} for {@link chainParamsOrName}, e.g.:
+     *
+     * ```javascript
+     * Common.custom(CustomChains.MaticMumbai)
+     * ```
+     *
+     * Note that these supported custom chains only provide some base parameters (usually the chain and
+     * network ID and a name) and can only be used for selected use cases (e.g. sending a tx with
+     * the `@ethereumjs/tx` library to a Layer-2 chain).
+     *
+     * @param chainParamsOrName Custom parameter dict (`name` will default to `custom-chain`) or string with name of a supported custom chain
+     * @param opts Custom chain options to set the {@link CustomCommonOpts.baseChain}, selected {@link CustomCommonOpts.hardfork} and others
+     */
+    static custom(chainParamsOrName, opts = {}) {
+        const baseChain = opts.baseChain ?? 'mainnet';
+        const standardChainParams = { ...Common._getChainParams(baseChain) };
+        standardChainParams['name'] = 'custom-chain';
+        if (typeof chainParamsOrName !== 'string') {
+            return new Common({
+                chain: {
+                    ...standardChainParams,
+                    ...chainParamsOrName,
+                },
+                ...opts,
+            });
+        }
+        else {
+            if (chainParamsOrName === CustomChain.PolygonMainnet) {
+                return Common.custom({
+                    name: CustomChain.PolygonMainnet,
+                    chainId: 137,
+                    networkId: 137,
+                }, opts);
+            }
+            if (chainParamsOrName === CustomChain.PolygonMumbai) {
+                return Common.custom({
+                    name: CustomChain.PolygonMumbai,
+                    chainId: 80001,
+                    networkId: 80001,
+                }, opts);
+            }
+            if (chainParamsOrName === CustomChain.ArbitrumOne) {
+                return Common.custom({
+                    name: CustomChain.ArbitrumOne,
+                    chainId: 42161,
+                    networkId: 42161,
+                }, opts);
+            }
+            if (chainParamsOrName === CustomChain.xDaiChain) {
+                return Common.custom({
+                    name: CustomChain.xDaiChain,
+                    chainId: 100,
+                    networkId: 100,
+                }, opts);
+            }
+            if (chainParamsOrName === CustomChain.OptimisticKovan) {
+                return Common.custom({
+                    name: CustomChain.OptimisticKovan,
+                    chainId: 69,
+                    networkId: 69,
+                }, 
+                // Optimism has not implemented the London hardfork yet (targeting Q1.22)
+                { hardfork: Hardfork.Berlin, ...opts });
+            }
+            if (chainParamsOrName === CustomChain.OptimisticEthereum) {
+                return Common.custom({
+                    name: CustomChain.OptimisticEthereum,
+                    chainId: 10,
+                    networkId: 10,
+                }, 
+                // Optimism has not implemented the London hardfork yet (targeting Q1.22)
+                { hardfork: Hardfork.Berlin, ...opts });
+            }
+            throw new Error(`Custom chain ${chainParamsOrName} not supported`);
+        }
+    }
+    /**
+     * Static method to load and set common from a geth genesis json
+     * @param genesisJson json of geth configuration
+     * @param { chain, eips, genesisHash, hardfork, mergeForkIdPostMerge } to further configure the common instance
+     * @returns Common
+     */
+    static fromGethGenesis(genesisJson, { chain, eips, genesisHash, hardfork, mergeForkIdPostMerge }) {
+        const genesisParams = parseGethGenesis(genesisJson, chain, mergeForkIdPostMerge);
+        const common = new Common({
+            chain: genesisParams.name ?? 'custom',
+            customChains: [genesisParams],
+            eips,
+            hardfork: hardfork ?? genesisParams.hardfork,
+        });
+        if (genesisHash !== undefined) {
+            common.setForkHashes(genesisHash);
+        }
+        return common;
+    }
+    /**
+     * Static method to determine if a {@link chainId} is supported as a standard chain
+     * @param chainId bigint id (`1`) of a standard chain
+     * @returns boolean
+     */
+    static isSupportedChainId(chainId) {
+        const initializedChains = this.getInitializedChains();
+        return Boolean(initializedChains['names'][chainId.toString()]);
+    }
+    static _getChainParams(chain, customChains) {
+        const initializedChains = this.getInitializedChains(customChains);
+        if (typeof chain === 'number' || typeof chain === 'bigint') {
+            chain = chain.toString();
+            if (initializedChains['names'][chain]) {
+                const name = initializedChains['names'][chain];
+                return initializedChains[name];
+            }
+            throw new Error(`Chain with ID ${chain} not supported`);
+        }
+        if (initializedChains[chain] !== undefined) {
+            return initializedChains[chain];
+        }
+        throw new Error(`Chain with name ${chain} not supported`);
+    }
+    /**
+     * Sets the chain
+     * @param chain String ('mainnet') or Number (1) chain representation.
+     *              Or, a Dictionary of chain parameters for a private network.
+     * @returns The dictionary with parameters set as chain
+     */
+    setChain(chain) {
+        if (typeof chain === 'number' || typeof chain === 'bigint' || typeof chain === 'string') {
+            this._chainParams = Common._getChainParams(chain, this._customChains);
+        }
+        else if (typeof chain === 'object') {
+            if (this._customChains.length > 0) {
+                throw new Error('Chain must be a string, number, or bigint when initialized with customChains passed in');
+            }
+            const required = ['networkId', 'genesis', 'hardforks', 'bootstrapNodes'];
+            for (const param of required) {
+                if (!(param in chain)) {
+                    throw new Error(`Missing required chain parameter: ${param}`);
+                }
+            }
+            this._chainParams = chain;
+        }
+        else {
+            throw new Error('Wrong input format');
+        }
+        for (const hf of this.hardforks()) {
+            if (hf.block === undefined) {
+                throw new Error(`Hardfork cannot have undefined block number`);
+            }
+        }
+        return this._chainParams;
+    }
+    /**
+     * Sets the hardfork to get params for
+     * @param hardfork String identifier (e.g. 'byzantium') or {@link Hardfork} enum
+     */
+    setHardfork(hardfork) {
+        let existing = false;
+        for (const hfChanges of this.HARDFORK_CHANGES) {
+            if (hfChanges[0] === hardfork) {
+                if (this._hardfork !== hardfork) {
+                    this._hardfork = hardfork;
+                    this.events.emit('hardforkChanged', hardfork);
+                }
+                existing = true;
+            }
+        }
+        if (!existing) {
+            throw new Error(`Hardfork with name ${hardfork} not supported`);
+        }
+    }
+    /**
+     * Returns the hardfork either based on block numer (older HFs) or
+     * timestamp (Shanghai upwards).
+     *
+     * An optional TD takes precedence in case the corresponding HF block
+     * is set to `null` or otherwise needs to match (if not an error
+     * will be thrown).
+     *
+     * @param Opts Block number, timestamp or TD (all optional)
+     * @returns The name of the HF
+     */
+    getHardforkBy(opts) {
+        let { blockNumber, timestamp, td } = opts;
+        blockNumber = toType(blockNumber, TypeOutput.BigInt);
+        td = toType(td, TypeOutput.BigInt);
+        timestamp = toType(timestamp, TypeOutput.BigInt);
+        // Filter out hardforks with no block number, no ttd or no timestamp (i.e. unapplied hardforks)
+        const hfs = this.hardforks().filter((hf) => hf.block !== null || (hf.ttd !== null && hf.ttd !== undefined) || hf.timestamp !== undefined);
+        const mergeIndex = hfs.findIndex((hf) => hf.ttd !== null && hf.ttd !== undefined);
+        const doubleTTDHF = hfs
+            .slice(mergeIndex + 1)
+            .findIndex((hf) => hf.ttd !== null && hf.ttd !== undefined);
+        if (doubleTTDHF >= 0) {
+            throw Error(`More than one merge hardforks found with ttd specified`);
+        }
+        // Find the first hardfork that has a block number greater than `blockNumber`
+        // (skips the merge hardfork since it cannot have a block number specified).
+        // If timestamp is not provided, it also skips timestamps hardforks to continue
+        // discovering/checking number hardforks.
+        let hfIndex = hfs.findIndex((hf) => (blockNumber !== undefined &&
+            hf.block !== null &&
+            BigInt(hf.block) > blockNumber) ||
+            (timestamp !== undefined && hf.timestamp !== undefined && hf.timestamp > timestamp));
+        if (hfIndex === -1) {
+            // all hardforks apply, set hfIndex to the last one as that's the candidate
+            hfIndex = hfs.length;
+        }
+        else if (hfIndex === 0) {
+            // cannot have a case where a block number is before all applied hardforks
+            // since the chain has to start with a hardfork
+            throw Error('Must have at least one hardfork at block 0');
+        }
+        // If timestamp is not provided, we need to rollback to the last hf with block or ttd
+        if (timestamp === undefined) {
+            const stepBack = hfs
+                .slice(0, hfIndex)
+                .reverse()
+                .findIndex((hf) => hf.block !== null || hf.ttd !== undefined);
+            hfIndex = hfIndex - stepBack;
+        }
+        // Move hfIndex one back to arrive at candidate hardfork
+        hfIndex = hfIndex - 1;
+        // If the timestamp was not provided, we could have skipped timestamp hardforks to look for number
+        // hardforks. so it will now be needed to rollback
+        if (hfs[hfIndex].block === null && hfs[hfIndex].timestamp === undefined) {
+            // We're on the merge hardfork.  Let's check the TTD
+            if (td === undefined || td === null || BigInt(hfs[hfIndex].ttd) > td) {
+                // Merge ttd greater than current td so we're on hardfork before merge
+                hfIndex -= 1;
+            }
+        }
+        else {
+            if (mergeIndex >= 0 && td !== undefined && td !== null) {
+                if (hfIndex >= mergeIndex && BigInt(hfs[mergeIndex].ttd) > td) {
+                    throw Error('Maximum HF determined by total difficulty is lower than the block number HF');
+                }
+                else if (hfIndex < mergeIndex && BigInt(hfs[mergeIndex].ttd) <= td) {
+                    throw Error('HF determined by block number is lower than the minimum total difficulty HF');
+                }
+            }
+        }
+        const hfStartIndex = hfIndex;
+        // Move the hfIndex to the end of the hardforks that might be scheduled on the same block/timestamp
+        // This won't anyway be the case with Merge hfs
+        for (; hfIndex < hfs.length - 1; hfIndex++) {
+            // break out if hfIndex + 1 is not scheduled at hfIndex
+            if (hfs[hfIndex].block !== hfs[hfIndex + 1].block ||
+                hfs[hfIndex].timestamp !== hfs[hfIndex + 1].timestamp) {
+                break;
+            }
+        }
+        if (timestamp !== undefined) {
+            const minTimeStamp = hfs
+                .slice(0, hfStartIndex)
+                .reduce((acc, hf) => Math.max(Number(hf.timestamp ?? '0'), acc), 0);
+            if (minTimeStamp > timestamp) {
+                throw Error(`Maximum HF determined by timestamp is lower than the block number/ttd HF`);
+            }
+            const maxTimeStamp = hfs
+                .slice(hfIndex + 1)
+                .reduce((acc, hf) => Math.min(Number(hf.timestamp ?? timestamp), acc), Number(timestamp));
+            if (maxTimeStamp < timestamp) {
+                throw Error(`Maximum HF determined by block number/ttd is lower than timestamp HF`);
+            }
+        }
+        const hardfork = hfs[hfIndex];
+        return hardfork.name;
+    }
+    /**
+     * Sets a new hardfork either based on block numer (older HFs) or
+     * timestamp (Shanghai upwards).
+     *
+     * An optional TD takes precedence in case the corresponding HF block
+     * is set to `null` or otherwise needs to match (if not an error
+     * will be thrown).
+     *
+     * @param Opts Block number, timestamp or TD (all optional)
+     * @returns The name of the HF set
+     */
+    setHardforkBy(opts) {
+        const hardfork = this.getHardforkBy(opts);
+        this.setHardfork(hardfork);
+        return hardfork;
+    }
+    /**
+     * Internal helper function, returns the params for the given hardfork for the chain set
+     * @param hardfork Hardfork name
+     * @returns Dictionary with hardfork params or null if hardfork not on chain
+     */
+    _getHardfork(hardfork) {
+        const hfs = this.hardforks();
+        for (const hf of hfs) {
+            if (hf['name'] === hardfork)
+                return hf;
+        }
+        return null;
+    }
+    /**
+     * Sets the active EIPs
+     * @param eips
+     */
+    setEIPs(eips = []) {
+        for (const eip of eips) {
+            if (!(eip in EIPs)) {
+                throw new Error(`${eip} not supported`);
+            }
+            const minHF = this.gteHardfork(EIPs[eip]['minimumHardfork']);
+            if (!minHF) {
+                throw new Error(`${eip} cannot be activated on hardfork ${this.hardfork()}, minimumHardfork: ${minHF}`);
+            }
+            if (EIPs[eip].requiredEIPs !== undefined) {
+                for (const elem of EIPs[eip].requiredEIPs) {
+                    if (!(eips.includes(elem) || this.isActivatedEIP(elem))) {
+                        throw new Error(`${eip} requires EIP ${elem}, but is not included in the EIP list`);
+                    }
+                }
+            }
+        }
+        this._eips = eips;
+    }
+    /**
+     * Returns a parameter for the current chain setup
+     *
+     * If the parameter is present in an EIP, the EIP always takes precedence.
+     * Otherwise the parameter if taken from the latest applied HF with
+     * a change on the respective parameter.
+     *
+     * @param topic Parameter topic ('gasConfig', 'gasPrices', 'vm', 'pow')
+     * @param name Parameter name (e.g. 'minGasLimit' for 'gasConfig' topic)
+     * @returns The value requested or `BigInt(0)` if not found
+     */
+    param(topic, name) {
+        // TODO: consider the case that different active EIPs
+        // can change the same parameter
+        let value;
+        for (const eip of this._eips) {
+            value = this.paramByEIP(topic, name, eip);
+            if (value !== undefined)
+                return value;
+        }
+        return this.paramByHardfork(topic, name, this._hardfork);
+    }
+    /**
+     * Returns the parameter corresponding to a hardfork
+     * @param topic Parameter topic ('gasConfig', 'gasPrices', 'vm', 'pow')
+     * @param name Parameter name (e.g. 'minGasLimit' for 'gasConfig' topic)
+     * @param hardfork Hardfork name
+     * @returns The value requested or `BigInt(0)` if not found
+     */
+    paramByHardfork(topic, name, hardfork) {
+        let value = null;
+        for (const hfChanges of this.HARDFORK_CHANGES) {
+            // EIP-referencing HF file (e.g. berlin.json)
+            if ('eips' in hfChanges[1]) {
+                const hfEIPs = hfChanges[1]['eips'];
+                for (const eip of hfEIPs) {
+                    const valueEIP = this.paramByEIP(topic, name, eip);
+                    value = typeof valueEIP === 'bigint' ? valueEIP : value;
+                }
+                // Parameter-inlining HF file (e.g. istanbul.json)
+            }
+            else {
+                if (hfChanges[1][topic] !== undefined &&
+                    hfChanges[1][topic][name] !== undefined) {
+                    value = hfChanges[1][topic][name].v;
+                }
+            }
+            if (hfChanges[0] === hardfork)
+                break;
+        }
+        return BigInt(value ?? 0);
+    }
+    /**
+     * Returns a parameter corresponding to an EIP
+     * @param topic Parameter topic ('gasConfig', 'gasPrices', 'vm', 'pow')
+     * @param name Parameter name (e.g. 'minGasLimit' for 'gasConfig' topic)
+     * @param eip Number of the EIP
+     * @returns The value requested or `undefined` if not found
+     */
+    paramByEIP(topic, name, eip) {
+        if (!(eip in EIPs)) {
+            throw new Error(`${eip} not supported`);
+        }
+        const eipParams = EIPs[eip];
+        if (!(topic in eipParams)) {
+            return undefined;
+        }
+        if (eipParams[topic][name] === undefined) {
+            return undefined;
+        }
+        const value = eipParams[topic][name].v;
+        return BigInt(value);
+    }
+    /**
+     * Returns a parameter for the hardfork active on block number or
+     * optional provided total difficulty (Merge HF)
+     * @param topic Parameter topic
+     * @param name Parameter name
+     * @param blockNumber Block number
+     * @param td Total difficulty
+     *    * @returns The value requested or `BigInt(0)` if not found
+     */
+    paramByBlock(topic, name, blockNumber, td, timestamp) {
+        const hardfork = this.getHardforkBy({ blockNumber, td, timestamp });
+        return this.paramByHardfork(topic, name, hardfork);
+    }
+    /**
+     * Checks if an EIP is activated by either being included in the EIPs
+     * manually passed in with the {@link CommonOpts.eips} or in a
+     * hardfork currently being active
+     *
+     * Note: this method only works for EIPs being supported
+     * by the {@link CommonOpts.eips} constructor option
+     * @param eip
+     */
+    isActivatedEIP(eip) {
+        if (this.eips().includes(eip)) {
+            return true;
+        }
+        for (const hfChanges of this.HARDFORK_CHANGES) {
+            const hf = hfChanges[1];
+            if (this.gteHardfork(hf['name']) && 'eips' in hf) {
+                if (hf['eips'].includes(eip)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    /**
+     * Checks if set or provided hardfork is active on block number
+     * @param hardfork Hardfork name or null (for HF set)
+     * @param blockNumber
+     * @returns True if HF is active on block number
+     */
+    hardforkIsActiveOnBlock(hardfork, blockNumber) {
+        blockNumber = toType(blockNumber, TypeOutput.BigInt);
+        hardfork = hardfork ?? this._hardfork;
+        const hfBlock = this.hardforkBlock(hardfork);
+        if (typeof hfBlock === 'bigint' && hfBlock !== BigInt(0) && blockNumber >= hfBlock) {
+            return true;
+        }
+        return false;
+    }
+    /**
+     * Alias to hardforkIsActiveOnBlock when hardfork is set
+     * @param blockNumber
+     * @returns True if HF is active on block number
+     */
+    activeOnBlock(blockNumber) {
+        return this.hardforkIsActiveOnBlock(null, blockNumber);
+    }
+    /**
+     * Sequence based check if given or set HF1 is greater than or equal HF2
+     * @param hardfork1 Hardfork name or null (if set)
+     * @param hardfork2 Hardfork name
+     * @param opts Hardfork options
+     * @returns True if HF1 gte HF2
+     */
+    hardforkGteHardfork(hardfork1, hardfork2) {
+        hardfork1 = hardfork1 ?? this._hardfork;
+        const hardforks = this.hardforks();
+        let posHf1 = -1, posHf2 = -1;
+        let index = 0;
+        for (const hf of hardforks) {
+            if (hf['name'] === hardfork1)
+                posHf1 = index;
+            if (hf['name'] === hardfork2)
+                posHf2 = index;
+            index += 1;
+        }
+        return posHf1 >= posHf2 && posHf2 !== -1;
+    }
+    /**
+     * Alias to hardforkGteHardfork when hardfork is set
+     * @param hardfork Hardfork name
+     * @returns True if hardfork set is greater than hardfork provided
+     */
+    gteHardfork(hardfork) {
+        return this.hardforkGteHardfork(null, hardfork);
+    }
+    /**
+     * Returns the hardfork change block for hardfork provided or set
+     * @param hardfork Hardfork name, optional if HF set
+     * @returns Block number or null if unscheduled
+     */
+    hardforkBlock(hardfork) {
+        hardfork = hardfork ?? this._hardfork;
+        const block = this._getHardfork(hardfork)?.['block'];
+        if (block === undefined || block === null) {
+            return null;
+        }
+        return BigInt(block);
+    }
+    hardforkTimestamp(hardfork) {
+        hardfork = hardfork ?? this._hardfork;
+        const timestamp = this._getHardfork(hardfork)?.['timestamp'];
+        if (timestamp === undefined || timestamp === null) {
+            return null;
+        }
+        return BigInt(timestamp);
+    }
+    /**
+     * Returns the hardfork change block for eip
+     * @param eip EIP number
+     * @returns Block number or null if unscheduled
+     */
+    eipBlock(eip) {
+        for (const hfChanges of this.HARDFORK_CHANGES) {
+            const hf = hfChanges[1];
+            if ('eips' in hf) {
+                // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+                if (hf['eips'].includes(eip)) {
+                    return this.hardforkBlock(hfChanges[0]);
+                }
+            }
+        }
+        return null;
+    }
+    /**
+     * Returns the hardfork change total difficulty (Merge HF) for hardfork provided or set
+     * @param hardfork Hardfork name, optional if HF set
+     * @returns Total difficulty or null if no set
+     */
+    hardforkTTD(hardfork) {
+        hardfork = hardfork ?? this._hardfork;
+        const ttd = this._getHardfork(hardfork)?.['ttd'];
+        if (ttd === undefined || ttd === null) {
+            return null;
+        }
+        return BigInt(ttd);
+    }
+    /**
+     * Returns the change block for the next hardfork after the hardfork provided or set
+     * @param hardfork Hardfork name, optional if HF set
+     * @returns Block timestamp, number or null if not available
+     */
+    nextHardforkBlockOrTimestamp(hardfork) {
+        hardfork = hardfork ?? this._hardfork;
+        const hfs = this.hardforks();
+        let hfIndex = hfs.findIndex((hf) => hf.name === hardfork);
+        // If the current hardfork is merge, go one behind as merge hf is not part of these
+        // calcs even if the merge hf block is set
+        if (hardfork === Hardfork.Paris) {
+            hfIndex -= 1;
+        }
+        // Hardfork not found
+        if (hfIndex < 0) {
+            return null;
+        }
+        let currHfTimeOrBlock = hfs[hfIndex].timestamp ?? hfs[hfIndex].block;
+        currHfTimeOrBlock =
+            currHfTimeOrBlock !== null && currHfTimeOrBlock !== undefined
+                ? Number(currHfTimeOrBlock)
+                : null;
+        const nextHf = hfs.slice(hfIndex + 1).find((hf) => {
+            let hfTimeOrBlock = hf.timestamp ?? hf.block;
+            hfTimeOrBlock =
+                hfTimeOrBlock !== null && hfTimeOrBlock !== undefined ? Number(hfTimeOrBlock) : null;
+            return (hf.name !== Hardfork.Paris &&
+                hfTimeOrBlock !== null &&
+                hfTimeOrBlock !== undefined &&
+                hfTimeOrBlock !== currHfTimeOrBlock);
+        });
+        // If no next hf found with valid block or timestamp return null
+        if (nextHf === undefined) {
+            return null;
+        }
+        const nextHfBlock = nextHf.timestamp ?? nextHf.block;
+        if (nextHfBlock === null || nextHfBlock === undefined) {
+            return null;
+        }
+        return BigInt(nextHfBlock);
+    }
+    /**
+     * Internal helper function to calculate a fork hash
+     * @param hardfork Hardfork name
+     * @param genesisHash Genesis block hash of the chain
+     * @returns Fork hash as hex string
+     */
+    _calcForkHash(hardfork, genesisHash) {
+        let hfBytes = new Uint8Array(0);
+        let prevBlockOrTime = 0;
+        for (const hf of this.hardforks()) {
+            const { block, timestamp, name } = hf;
+            // Timestamp to be used for timestamp based hfs even if we may bundle
+            // block number with them retrospectively
+            let blockOrTime = timestamp ?? block;
+            blockOrTime = blockOrTime !== null ? Number(blockOrTime) : null;
+            // Skip for chainstart (0), not applied HFs (null) and
+            // when already applied on same blockOrTime HFs
+            // and on the merge since forkhash doesn't change on merge hf
+            if (typeof blockOrTime === 'number' &&
+                blockOrTime !== 0 &&
+                blockOrTime !== prevBlockOrTime &&
+                name !== Hardfork.Paris) {
+                const hfBlockBytes = hexToBytes('0x' + blockOrTime.toString(16).padStart(16, '0'));
+                hfBytes = concatBytes(hfBytes, hfBlockBytes);
+                prevBlockOrTime = blockOrTime;
+            }
+            if (hf.name === hardfork)
+                break;
+        }
+        const inputBytes = concatBytes(genesisHash, hfBytes);
+        // CRC32 delivers result as signed (negative) 32-bit integer,
+        // convert to hex string
+        const forkhash = bytesToHex(intToBytes(crc32(inputBytes) >>> 0));
+        return forkhash;
+    }
+    /**
+     * Returns an eth/64 compliant fork hash (EIP-2124)
+     * @param hardfork Hardfork name, optional if HF set
+     * @param genesisHash Genesis block hash of the chain, optional if already defined and not needed to be calculated
+     */
+    forkHash(hardfork, genesisHash) {
+        hardfork = hardfork ?? this._hardfork;
+        const data = this._getHardfork(hardfork);
+        if (data === null ||
+            (data?.block === null && data?.timestamp === undefined && data?.ttd === undefined)) {
+            const msg = 'No fork hash calculation possible for future hardfork';
+            throw new Error(msg);
+        }
+        if (data?.forkHash !== null && data?.forkHash !== undefined) {
+            return data.forkHash;
+        }
+        if (!genesisHash)
+            throw new Error('genesisHash required for forkHash calculation');
+        return this._calcForkHash(hardfork, genesisHash);
+    }
+    /**
+     *
+     * @param forkHash Fork hash as a hex string
+     * @returns Array with hardfork data (name, block, forkHash)
+     */
+    hardforkForForkHash(forkHash) {
+        const resArray = this.hardforks().filter((hf) => {
+            return hf.forkHash === forkHash;
+        });
+        return resArray.length >= 1 ? resArray[resArray.length - 1] : null;
+    }
+    /**
+     * Sets any missing forkHashes on the passed-in {@link Common} instance
+     * @param common The {@link Common} to set the forkHashes for
+     * @param genesisHash The genesis block hash
+     */
+    setForkHashes(genesisHash) {
+        for (const hf of this.hardforks()) {
+            const blockOrTime = hf.timestamp ?? hf.block;
+            if ((hf.forkHash === null || hf.forkHash === undefined) &&
+                ((blockOrTime !== null && blockOrTime !== undefined) || typeof hf.ttd !== 'undefined')) {
+                hf.forkHash = this.forkHash(hf.name, genesisHash);
+            }
+        }
+    }
+    /**
+     * Returns the Genesis parameters of the current chain
+     * @returns Genesis dictionary
+     */
+    genesis() {
+        return this._chainParams.genesis;
+    }
+    /**
+     * Returns the hardforks for current chain
+     * @returns {Array} Array with arrays of hardforks
+     */
+    hardforks() {
+        return this._chainParams.hardforks;
+    }
+    /**
+     * Returns bootstrap nodes for the current chain
+     * @returns {Dictionary} Dict with bootstrap nodes
+     */
+    bootstrapNodes() {
+        return this._chainParams.bootstrapNodes;
+    }
+    /**
+     * Returns DNS networks for the current chain
+     * @returns {String[]} Array of DNS ENR urls
+     */
+    dnsNetworks() {
+        return this._chainParams.dnsNetworks;
+    }
+    /**
+     * Returns the hardfork set
+     * @returns Hardfork name
+     */
+    hardfork() {
+        return this._hardfork;
+    }
+    /**
+     * Returns the Id of current chain
+     * @returns chain Id
+     */
+    chainId() {
+        return BigInt(this._chainParams.chainId);
+    }
+    /**
+     * Returns the name of current chain
+     * @returns chain name (lower case)
+     */
+    chainName() {
+        return this._chainParams.name;
+    }
+    /**
+     * Returns the Id of current network
+     * @returns network Id
+     */
+    networkId() {
+        return BigInt(this._chainParams.networkId);
+    }
+    /**
+     * Returns the active EIPs
+     * @returns List of EIPs
+     */
+    eips() {
+        return this._eips;
+    }
+    /**
+     * Returns the consensus type of the network
+     * Possible values: "pow"|"poa"|"pos"
+     *
+     * Note: This value can update along a Hardfork.
+     */
+    consensusType() {
+        const hardfork = this.hardfork();
+        let value;
+        for (const hfChanges of this.HARDFORK_CHANGES) {
+            if ('consensus' in hfChanges[1]) {
+                value = hfChanges[1]['consensus']['type'];
+            }
+            if (hfChanges[0] === hardfork)
+                break;
+        }
+        return value ?? this._chainParams['consensus']['type'];
+    }
+    /**
+     * Returns the concrete consensus implementation
+     * algorithm or protocol for the network
+     * e.g. "ethash" for "pow" consensus type,
+     * "clique" for "poa" consensus type or
+     * "casper" for "pos" consensus type.
+     *
+     * Note: This value can update along a Hardfork.
+     */
+    consensusAlgorithm() {
+        const hardfork = this.hardfork();
+        let value;
+        for (const hfChanges of this.HARDFORK_CHANGES) {
+            if ('consensus' in hfChanges[1]) {
+                value = hfChanges[1]['consensus']['algorithm'];
+            }
+            if (hfChanges[0] === hardfork)
+                break;
+        }
+        return value ?? this._chainParams['consensus']['algorithm'];
+    }
+    /**
+     * Returns a dictionary with consensus configuration
+     * parameters based on the consensus algorithm
+     *
+     * Expected returns (parameters must be present in
+     * the respective chain json files):
+     *
+     * ethash: empty object
+     * clique: period, epoch
+     * casper: empty object
+     *
+     * Note: This value can update along a Hardfork.
+     */
+    consensusConfig() {
+        const hardfork = this.hardfork();
+        let value;
+        for (const hfChanges of this.HARDFORK_CHANGES) {
+            if ('consensus' in hfChanges[1]) {
+                // The config parameter is named after the respective consensus algorithm
+                const config = hfChanges[1];
+                const algorithm = config['consensus']['algorithm'];
+                value = config['consensus'][algorithm];
+            }
+            if (hfChanges[0] === hardfork)
+                break;
+        }
+        return (value ?? this._chainParams['consensus'][this.consensusAlgorithm()] ?? {});
+    }
+    /**
+     * Returns a deep copy of this {@link Common} instance.
+     */
+    copy() {
+        const copy = Object.assign(Object.create(Object.getPrototypeOf(this)), this);
+        copy.events = new EventEmitter();
+        return copy;
+    }
+    static getInitializedChains(customChains) {
+        const names = {};
+        for (const [name, id] of Object.entries(Chain)) {
+            names[id] = name.toLowerCase();
+        }
+        const chains$1 = { ...chains };
+        if (customChains) {
+            for (const chain of customChains) {
+                const { name } = chain;
+                names[chain.chainId.toString()] = name;
+                chains$1[name] = chain;
+            }
+        }
+        chains$1.names = names;
+        return chains$1;
+    }
+}
+
+/**
+ * External Interfaces for other EthereumJS libraries
+ */
+
+export { Chain, ChainGenesis, Common, ConsensusAlgorithm, ConsensusType, CustomChain, Hardfork, parseGethGenesis };
+
+//# sourceMappingURL=common@4.0.0.map

@@ -1,0 +1,29 @@
+{
+  "headers": {
+    "cache-control": "public, max-age=200",
+    "etag": "\"1fb6497f840dcbd9e13839bb587b14ce\"",
+    "cf4age": "0",
+    "content-type": "text/javascript; charset=utf-8",
+    "access-control-expose-headers": "Content-Type",
+    "x-cf-rand": "51.437",
+    "last-modified": "Sun, 30 Apr 2023 19:51:27 GMT",
+    "expires": "Wed, 16 Aug 2023 07:46:06 GMT",
+    "cf4ttl": "200.000",
+    "x-cff": "B",
+    "server": "CFS 0215",
+    "x-cf-reqid": "414d98f713fe2281d977a11aef8afa94",
+    "cross-origin-resource-policy": "cross-origin",
+    "x-cf2": "H",
+    "x-cf1": "29748:fE.waw1:co:1669825690:cacheN.waw1-01:M",
+    "access-control-allow-origin": "*",
+    "x-cf3": "M",
+    "x-cf-tsc": "1692171767",
+    "accept-ranges": "bytes",
+    "date": "Wed, 16 Aug 2023 08:04:56 GMT"
+  },
+  "url": "https://jspm.dev/eventemitter3",
+  "now": {
+    "secs_since_epoch": 1692173096,
+    "nanos_since_epoch": 909479000
+  }
+}

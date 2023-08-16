@@ -1,0 +1,22 @@
+import '/npm:varint@5!cjs';
+import _baseTable from './base-table';
+import '/npm:@jspm/core@2/nodelibs/buffer';
+import _util from './util!cjs';
+
+var exports = {};
+const baseTable = _baseTable;
+const varintEncode = _util.varintEncode; // map for codecName -> codeVarintBuffer
+
+const varintTable = {};
+
+for (const encodingName in baseTable) {
+  const code = baseTable[encodingName];
+  varintTable[encodingName] = varintEncode(code);
+}
+
+exports = Object.freeze(varintTable);
+var _varintTable = exports;
+
+export default _varintTable;
+
+//# sourceMappingURL=varint-table!cjs.map

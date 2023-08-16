@@ -1,0 +1,18 @@
+// Copyright 2018-2023 the Deno authors. All rights reserved. MIT license.
+// This module is browser compatible.
+/**
+ * Provides helper functions to manipulate `Uint8Array` byte slices that are not
+ * included on the `Uint8Array` prototype.
+ *
+ * @module
+ */ export * from "./bytes_list.ts";
+export * from "./concat.ts";
+export * from "./copy.ts";
+export * from "./ends_with.ts";
+export * from "./equals.ts";
+export * from "./includes_needle.ts";
+export * from "./index_of_needle.ts";
+export * from "./last_index_of_needle.ts";
+export * from "./repeat.ts";
+export * from "./starts_with.ts";
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImh0dHBzOi8vZGVuby5sYW5kL3N0ZEAwLjE5My4wL2J5dGVzL21vZC50cyJdLCJzb3VyY2VzQ29udGVudCI6WyIvLyBDb3B5cmlnaHQgMjAxOC0yMDIzIHRoZSBEZW5vIGF1dGhvcnMuIEFsbCByaWdodHMgcmVzZXJ2ZWQuIE1JVCBsaWNlbnNlLlxuLy8gVGhpcyBtb2R1bGUgaXMgYnJvd3NlciBjb21wYXRpYmxlLlxuXG4vKipcbiAqIFByb3ZpZGVzIGhlbHBlciBmdW5jdGlvbnMgdG8gbWFuaXB1bGF0ZSBgVWludDhBcnJheWAgYnl0ZSBzbGljZXMgdGhhdCBhcmUgbm90XG4gKiBpbmNsdWRlZCBvbiB0aGUgYFVpbnQ4QXJyYXlgIHByb3RvdHlwZS5cbiAqXG4gKiBAbW9kdWxlXG4gKi9cblxuZXhwb3J0ICogZnJvbSBcIi4vYnl0ZXNfbGlzdC50c1wiO1xuZXhwb3J0ICogZnJvbSBcIi4vY29uY2F0LnRzXCI7XG5leHBvcnQgKiBmcm9tIFwiLi9jb3B5LnRzXCI7XG5leHBvcnQgKiBmcm9tIFwiLi9lbmRzX3dpdGgudHNcIjtcbmV4cG9ydCAqIGZyb20gXCIuL2VxdWFscy50c1wiO1xuZXhwb3J0ICogZnJvbSBcIi4vaW5jbHVkZXNfbmVlZGxlLnRzXCI7XG5leHBvcnQgKiBmcm9tIFwiLi9pbmRleF9vZl9uZWVkbGUudHNcIjtcbmV4cG9ydCAqIGZyb20gXCIuL2xhc3RfaW5kZXhfb2ZfbmVlZGxlLnRzXCI7XG5leHBvcnQgKiBmcm9tIFwiLi9yZXBlYXQudHNcIjtcbmV4cG9ydCAqIGZyb20gXCIuL3N0YXJ0c193aXRoLnRzXCI7XG4iXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQUEsMEVBQTBFO0FBQzFFLHFDQUFxQztBQUVyQzs7Ozs7Q0FLQyxHQUVELGNBQWMsa0JBQWtCO0FBQ2hDLGNBQWMsY0FBYztBQUM1QixjQUFjLFlBQVk7QUFDMUIsY0FBYyxpQkFBaUI7QUFDL0IsY0FBYyxjQUFjO0FBQzVCLGNBQWMsdUJBQXVCO0FBQ3JDLGNBQWMsdUJBQXVCO0FBQ3JDLGNBQWMsNEJBQTRCO0FBQzFDLGNBQWMsY0FBYztBQUM1QixjQUFjLG1CQUFtQiJ9

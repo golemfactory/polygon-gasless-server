@@ -1,0 +1,102 @@
+import _inherits from '/npm:inherits@2!cjs';
+import _safeBuffer from '/npm:safe-buffer@5!cjs';
+import { _ as _hash } from './_/c75f0f87.js';
+
+var _global = typeof globalThis !== "undefined" ? globalThis : typeof self !== "undefined" ? self : global;
+
+var exports = {};
+
+/*
+ * A JavaScript implementation of the Secure Hash Algorithm, SHA-1, as defined
+ * in FIPS PUB 180-1
+ * Version 2.1a Copyright Paul Johnston 2000 - 2002.
+ * Other contributors: Greg Holt, Andrew Kepert, Ydnar, Lostinet
+ * Distributed under the BSD License
+ * See http://pajhome.org.uk/crypt/md5 for details.
+ */
+var inherits = _inherits;
+var Hash = _hash;
+var Buffer = _safeBuffer.Buffer;
+var K = [1518500249, 1859775393, 2400959708 | 0, 3395469782 | 0];
+var W = new Array(80);
+
+function Sha1() {
+  this.init();
+  (this || _global)._w = W;
+  Hash.call(this || _global, 64, 56);
+}
+
+inherits(Sha1, Hash);
+
+Sha1.prototype.init = function () {
+  (this || _global)._a = 1732584193;
+  (this || _global)._b = 4023233417;
+  (this || _global)._c = 2562383102;
+  (this || _global)._d = 271733878;
+  (this || _global)._e = 3285377520;
+  return this || _global;
+};
+
+function rotl1(num) {
+  return num << 1 | num >>> 31;
+}
+
+function rotl5(num) {
+  return num << 5 | num >>> 27;
+}
+
+function rotl30(num) {
+  return num << 30 | num >>> 2;
+}
+
+function ft(s, b, c, d) {
+  if (s === 0) return b & c | ~b & d;
+  if (s === 2) return b & c | b & d | c & d;
+  return b ^ c ^ d;
+}
+
+Sha1.prototype._update = function (M) {
+  var W = (this || _global)._w;
+  var a = (this || _global)._a | 0;
+  var b = (this || _global)._b | 0;
+  var c = (this || _global)._c | 0;
+  var d = (this || _global)._d | 0;
+  var e = (this || _global)._e | 0;
+
+  for (var i = 0; i < 16; ++i) W[i] = M.readInt32BE(i * 4);
+
+  for (; i < 80; ++i) W[i] = rotl1(W[i - 3] ^ W[i - 8] ^ W[i - 14] ^ W[i - 16]);
+
+  for (var j = 0; j < 80; ++j) {
+    var s = ~~(j / 20);
+    var t = rotl5(a) + ft(s, b, c, d) + e + W[j] + K[s] | 0;
+    e = d;
+    d = c;
+    c = rotl30(b);
+    b = a;
+    a = t;
+  }
+
+  (this || _global)._a = a + (this || _global)._a | 0;
+  (this || _global)._b = b + (this || _global)._b | 0;
+  (this || _global)._c = c + (this || _global)._c | 0;
+  (this || _global)._d = d + (this || _global)._d | 0;
+  (this || _global)._e = e + (this || _global)._e | 0;
+};
+
+Sha1.prototype._hash = function () {
+  var H = Buffer.allocUnsafe(20);
+  H.writeInt32BE((this || _global)._a | 0, 0);
+  H.writeInt32BE((this || _global)._b | 0, 4);
+  H.writeInt32BE((this || _global)._c | 0, 8);
+  H.writeInt32BE((this || _global)._d | 0, 12);
+  H.writeInt32BE((this || _global)._e | 0, 16);
+  return H;
+};
+
+exports = Sha1;
+var _sha2 = exports;
+
+export default _sha2;
+
+//# sourceMappingURL=sha1!cjs.map

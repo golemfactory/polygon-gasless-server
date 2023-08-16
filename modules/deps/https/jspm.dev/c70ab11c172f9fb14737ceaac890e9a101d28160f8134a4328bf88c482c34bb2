@@ -1,0 +1,1 @@
+export { default } from "/npm:inherits@2.0.4!cjs";

@@ -1,0 +1,5 @@
+import "/npm:@jspm/core@2/nodelibs/buffer";
+import "/npm:bn.js@4.11.6!cjs";
+import "/npm:is-hex-prefixed@1.0.0!cjs";
+import "/npm:strip-hex-prefix@1.0.0!cjs";
+export { default } from "/npm:number-to-bn@1.7.0!cjs";

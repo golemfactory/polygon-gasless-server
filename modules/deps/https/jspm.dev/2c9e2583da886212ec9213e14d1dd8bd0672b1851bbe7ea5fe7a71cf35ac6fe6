@@ -1,0 +1,5 @@
+import "/npm:strict-uri-encode@1!cjs";
+import "/npm:object-assign@4!cjs";
+import "/npm:decode-uri-component@0.2!cjs";
+export * from "/npm:query-string@5.1.1!cjs";
+export { default } from "/npm:query-string@5.1.1!cjs";

@@ -1,0 +1,2 @@
+export * from "/npm:@ethersproject/logger@5.4.1!cjs";
+export { default } from "/npm:@ethersproject/logger@5.4.1!cjs";

@@ -1,0 +1,3 @@
+import "/npm:@ethersproject/logger@5!cjs";
+export * from "/npm:@ethersproject/bytes@5.4.0!cjs";
+export { default } from "/npm:@ethersproject/bytes@5.4.0!cjs";

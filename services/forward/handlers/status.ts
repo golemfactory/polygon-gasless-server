@@ -4,6 +4,7 @@ import { utils } from "../../../sci.ts";
 import { sender } from "../../../sender.ts";
 
 export const getServiceStatus = async (ctx: Context) => {
+  console.log("hello");
   const networkId = await web3.eth.net.getId();
   const address = sender.address;
   const gas = utils.fromWei(await web3.eth.getBalance(address));

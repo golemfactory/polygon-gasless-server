@@ -1,0 +1,4 @@
+import "/npm:inherits@2!cjs";
+import "/npm:hash-base@3!cjs";
+import "/npm:safe-buffer@5!cjs";
+export { default } from "/npm:md5.js@1.3.5!cjs";

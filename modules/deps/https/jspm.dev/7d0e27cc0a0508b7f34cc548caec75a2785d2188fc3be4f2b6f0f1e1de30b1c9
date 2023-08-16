@@ -1,0 +1,211 @@
+import _inherits from '/npm:inherits@2!cjs';
+import _safeBuffer from '/npm:safe-buffer@5!cjs';
+import { _ as _hash } from './_/c75f0f87.js';
+
+var _global = typeof globalThis !== "undefined" ? globalThis : typeof self !== "undefined" ? self : global;
+
+var exports = {};
+var inherits = _inherits;
+var Hash = _hash;
+var Buffer = _safeBuffer.Buffer;
+var K = [1116352408, 3609767458, 1899447441, 602891725, 3049323471, 3964484399, 3921009573, 2173295548, 961987163, 4081628472, 1508970993, 3053834265, 2453635748, 2937671579, 2870763221, 3664609560, 3624381080, 2734883394, 310598401, 1164996542, 607225278, 1323610764, 1426881987, 3590304994, 1925078388, 4068182383, 2162078206, 991336113, 2614888103, 633803317, 3248222580, 3479774868, 3835390401, 2666613458, 4022224774, 944711139, 264347078, 2341262773, 604807628, 2007800933, 770255983, 1495990901, 1249150122, 1856431235, 1555081692, 3175218132, 1996064986, 2198950837, 2554220882, 3999719339, 2821834349, 766784016, 2952996808, 2566594879, 3210313671, 3203337956, 3336571891, 1034457026, 3584528711, 2466948901, 113926993, 3758326383, 338241895, 168717936, 666307205, 1188179964, 773529912, 1546045734, 1294757372, 1522805485, 1396182291, 2643833823, 1695183700, 2343527390, 1986661051, 1014477480, 2177026350, 1206759142, 2456956037, 344077627, 2730485921, 1290863460, 2820302411, 3158454273, 3259730800, 3505952657, 3345764771, 106217008, 3516065817, 3606008344, 3600352804, 1432725776, 4094571909, 1467031594, 275423344, 851169720, 430227734, 3100823752, 506948616, 1363258195, 659060556, 3750685593, 883997877, 3785050280, 958139571, 3318307427, 1322822218, 3812723403, 1537002063, 2003034995, 1747873779, 3602036899, 1955562222, 1575990012, 2024104815, 1125592928, 2227730452, 2716904306, 2361852424, 442776044, 2428436474, 593698344, 2756734187, 3733110249, 3204031479, 2999351573, 3329325298, 3815920427, 3391569614, 3928383900, 3515267271, 566280711, 3940187606, 3454069534, 4118630271, 4000239992, 116418474, 1914138554, 174292421, 2731055270, 289380356, 3203993006, 460393269, 320620315, 685471733, 587496836, 852142971, 1086792851, 1017036298, 365543100, 1126000580, 2618297676, 1288033470, 3409855158, 1501505948, 4234509866, 1607167915, 987167468, 1816402316, 1246189591];
+var W = new Array(160);
+
+function Sha512() {
+  this.init();
+  (this || _global)._w = W;
+  Hash.call(this || _global, 128, 112);
+}
+
+inherits(Sha512, Hash);
+
+Sha512.prototype.init = function () {
+  (this || _global)._ah = 1779033703;
+  (this || _global)._bh = 3144134277;
+  (this || _global)._ch = 1013904242;
+  (this || _global)._dh = 2773480762;
+  (this || _global)._eh = 1359893119;
+  (this || _global)._fh = 2600822924;
+  (this || _global)._gh = 528734635;
+  (this || _global)._hh = 1541459225;
+  (this || _global)._al = 4089235720;
+  (this || _global)._bl = 2227873595;
+  (this || _global)._cl = 4271175723;
+  (this || _global)._dl = 1595750129;
+  (this || _global)._el = 2917565137;
+  (this || _global)._fl = 725511199;
+  (this || _global)._gl = 4215389547;
+  (this || _global)._hl = 327033209;
+  return this || _global;
+};
+
+function Ch(x, y, z) {
+  return z ^ x & (y ^ z);
+}
+
+function maj(x, y, z) {
+  return x & y | z & (x | y);
+}
+
+function sigma0(x, xl) {
+  return (x >>> 28 | xl << 4) ^ (xl >>> 2 | x << 30) ^ (xl >>> 7 | x << 25);
+}
+
+function sigma1(x, xl) {
+  return (x >>> 14 | xl << 18) ^ (x >>> 18 | xl << 14) ^ (xl >>> 9 | x << 23);
+}
+
+function Gamma0(x, xl) {
+  return (x >>> 1 | xl << 31) ^ (x >>> 8 | xl << 24) ^ x >>> 7;
+}
+
+function Gamma0l(x, xl) {
+  return (x >>> 1 | xl << 31) ^ (x >>> 8 | xl << 24) ^ (x >>> 7 | xl << 25);
+}
+
+function Gamma1(x, xl) {
+  return (x >>> 19 | xl << 13) ^ (xl >>> 29 | x << 3) ^ x >>> 6;
+}
+
+function Gamma1l(x, xl) {
+  return (x >>> 19 | xl << 13) ^ (xl >>> 29 | x << 3) ^ (x >>> 6 | xl << 26);
+}
+
+function getCarry(a, b) {
+  return a >>> 0 < b >>> 0 ? 1 : 0;
+}
+
+Sha512.prototype._update = function (M) {
+  var W = (this || _global)._w;
+  var ah = (this || _global)._ah | 0;
+  var bh = (this || _global)._bh | 0;
+  var ch = (this || _global)._ch | 0;
+  var dh = (this || _global)._dh | 0;
+  var eh = (this || _global)._eh | 0;
+  var fh = (this || _global)._fh | 0;
+  var gh = (this || _global)._gh | 0;
+  var hh = (this || _global)._hh | 0;
+  var al = (this || _global)._al | 0;
+  var bl = (this || _global)._bl | 0;
+  var cl = (this || _global)._cl | 0;
+  var dl = (this || _global)._dl | 0;
+  var el = (this || _global)._el | 0;
+  var fl = (this || _global)._fl | 0;
+  var gl = (this || _global)._gl | 0;
+  var hl = (this || _global)._hl | 0;
+
+  for (var i = 0; i < 32; i += 2) {
+    W[i] = M.readInt32BE(i * 4);
+    W[i + 1] = M.readInt32BE(i * 4 + 4);
+  }
+
+  for (; i < 160; i += 2) {
+    var xh = W[i - 15 * 2];
+    var xl = W[i - 15 * 2 + 1];
+    var gamma0 = Gamma0(xh, xl);
+    var gamma0l = Gamma0l(xl, xh);
+    xh = W[i - 2 * 2];
+    xl = W[i - 2 * 2 + 1];
+    var gamma1 = Gamma1(xh, xl);
+    var gamma1l = Gamma1l(xl, xh); // W[i] = gamma0 + W[i - 7] + gamma1 + W[i - 16]
+
+    var Wi7h = W[i - 7 * 2];
+    var Wi7l = W[i - 7 * 2 + 1];
+    var Wi16h = W[i - 16 * 2];
+    var Wi16l = W[i - 16 * 2 + 1];
+    var Wil = gamma0l + Wi7l | 0;
+    var Wih = gamma0 + Wi7h + getCarry(Wil, gamma0l) | 0;
+    Wil = Wil + gamma1l | 0;
+    Wih = Wih + gamma1 + getCarry(Wil, gamma1l) | 0;
+    Wil = Wil + Wi16l | 0;
+    Wih = Wih + Wi16h + getCarry(Wil, Wi16l) | 0;
+    W[i] = Wih;
+    W[i + 1] = Wil;
+  }
+
+  for (var j = 0; j < 160; j += 2) {
+    Wih = W[j];
+    Wil = W[j + 1];
+    var majh = maj(ah, bh, ch);
+    var majl = maj(al, bl, cl);
+    var sigma0h = sigma0(ah, al);
+    var sigma0l = sigma0(al, ah);
+    var sigma1h = sigma1(eh, el);
+    var sigma1l = sigma1(el, eh); // t1 = h + sigma1 + ch + K[j] + W[j]
+
+    var Kih = K[j];
+    var Kil = K[j + 1];
+    var chh = Ch(eh, fh, gh);
+    var chl = Ch(el, fl, gl);
+    var t1l = hl + sigma1l | 0;
+    var t1h = hh + sigma1h + getCarry(t1l, hl) | 0;
+    t1l = t1l + chl | 0;
+    t1h = t1h + chh + getCarry(t1l, chl) | 0;
+    t1l = t1l + Kil | 0;
+    t1h = t1h + Kih + getCarry(t1l, Kil) | 0;
+    t1l = t1l + Wil | 0;
+    t1h = t1h + Wih + getCarry(t1l, Wil) | 0; // t2 = sigma0 + maj
+
+    var t2l = sigma0l + majl | 0;
+    var t2h = sigma0h + majh + getCarry(t2l, sigma0l) | 0;
+    hh = gh;
+    hl = gl;
+    gh = fh;
+    gl = fl;
+    fh = eh;
+    fl = el;
+    el = dl + t1l | 0;
+    eh = dh + t1h + getCarry(el, dl) | 0;
+    dh = ch;
+    dl = cl;
+    ch = bh;
+    cl = bl;
+    bh = ah;
+    bl = al;
+    al = t1l + t2l | 0;
+    ah = t1h + t2h + getCarry(al, t1l) | 0;
+  }
+
+  (this || _global)._al = (this || _global)._al + al | 0;
+  (this || _global)._bl = (this || _global)._bl + bl | 0;
+  (this || _global)._cl = (this || _global)._cl + cl | 0;
+  (this || _global)._dl = (this || _global)._dl + dl | 0;
+  (this || _global)._el = (this || _global)._el + el | 0;
+  (this || _global)._fl = (this || _global)._fl + fl | 0;
+  (this || _global)._gl = (this || _global)._gl + gl | 0;
+  (this || _global)._hl = (this || _global)._hl + hl | 0;
+  (this || _global)._ah = (this || _global)._ah + ah + getCarry((this || _global)._al, al) | 0;
+  (this || _global)._bh = (this || _global)._bh + bh + getCarry((this || _global)._bl, bl) | 0;
+  (this || _global)._ch = (this || _global)._ch + ch + getCarry((this || _global)._cl, cl) | 0;
+  (this || _global)._dh = (this || _global)._dh + dh + getCarry((this || _global)._dl, dl) | 0;
+  (this || _global)._eh = (this || _global)._eh + eh + getCarry((this || _global)._el, el) | 0;
+  (this || _global)._fh = (this || _global)._fh + fh + getCarry((this || _global)._fl, fl) | 0;
+  (this || _global)._gh = (this || _global)._gh + gh + getCarry((this || _global)._gl, gl) | 0;
+  (this || _global)._hh = (this || _global)._hh + hh + getCarry((this || _global)._hl, hl) | 0;
+};
+
+Sha512.prototype._hash = function () {
+  var H = Buffer.allocUnsafe(64);
+
+  function writeInt64BE(h, l, offset) {
+    H.writeInt32BE(h, offset);
+    H.writeInt32BE(l, offset + 4);
+  }
+
+  writeInt64BE((this || _global)._ah, (this || _global)._al, 0);
+  writeInt64BE((this || _global)._bh, (this || _global)._bl, 8);
+  writeInt64BE((this || _global)._ch, (this || _global)._cl, 16);
+  writeInt64BE((this || _global)._dh, (this || _global)._dl, 24);
+  writeInt64BE((this || _global)._eh, (this || _global)._el, 32);
+  writeInt64BE((this || _global)._fh, (this || _global)._fl, 40);
+  writeInt64BE((this || _global)._gh, (this || _global)._gl, 48);
+  writeInt64BE((this || _global)._hh, (this || _global)._hl, 56);
+  return H;
+};
+
+exports = Sha512;
+var _sha6 = exports;
+
+export default _sha6;
+
+//# sourceMappingURL=sha512!cjs.map

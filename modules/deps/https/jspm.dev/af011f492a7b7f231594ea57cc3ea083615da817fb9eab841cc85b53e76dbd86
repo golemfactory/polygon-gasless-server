@@ -1,0 +1,5 @@
+import "/npm:buffer@5!cjs";
+import "/npm:multibase@0.6.1/src/constants!cjs";
+import "/npm:base-x@3!cjs";
+export * from "/npm:multibase@0.6.1!cjs";
+export { default } from "/npm:multibase@0.6.1!cjs";

@@ -8,7 +8,7 @@ import { validateTransferMetaTxArguments } from "../validators/transfer.ts";
 
 const pendingSenders = new Set<string>();
 export const forwardTransfer = async (ctx: Context) => {
-  const logger = log.getLogger("webapps");
+  const logger = log.getLogger("webapp");
   try {
     const input = ForwardRequest.parse(
       await ctx.request.body({ type: "json" }).value

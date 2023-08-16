@@ -1,0 +1,31 @@
+{
+  "headers": {
+    "x-cf1": "29748:fE.waw1:co:1669825690:cacheN.waw1-01:M",
+    "cross-origin-resource-policy": "cross-origin",
+    "cache-control": "public, max-age=200",
+    "x-cf3": "M",
+    "date": "Wed, 16 Aug 2023 08:04:56 GMT",
+    "content-type": "application/javascript",
+    "expires": "Wed, 16 Aug 2023 07:46:06 GMT",
+    "cf4age": "0",
+    "etag": "\"c75ed1e31ed9f0cc9fa5cc08209610fa\"",
+    "vary": "X-Goog-Allowed-Resources",
+    "x-cf-tsc": "1692171767",
+    "cf4ttl": "200.000",
+    "x-cf-rand": "88.532",
+    "x-cf2": "H",
+    "accept-ranges": "bytes",
+    "access-control-allow-origin": "*",
+    "last-modified": "Thu, 04 Jun 2020 03:02:14 GMT",
+    "x-cff": "B",
+    "content-language": "en",
+    "access-control-expose-headers": "Content-Type",
+    "x-cf-reqid": "8e217fd0c02c0ba7e9831709ae094f71",
+    "server": "CFS 0215"
+  },
+  "url": "https://jspm.dev/oboe",
+  "now": {
+    "secs_since_epoch": 1692173096,
+    "nanos_since_epoch": 908159000
+  }
+}

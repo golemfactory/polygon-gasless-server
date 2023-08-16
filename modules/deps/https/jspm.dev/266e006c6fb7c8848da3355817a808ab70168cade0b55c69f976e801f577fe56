@@ -1,0 +1,9 @@
+import crc8dvbs2$1 from './calculators/crc8dvbs2';
+import { d as defineCrc } from './_/a7365c44.js';
+import '../npm:buffer';
+
+var crc8dvbs2 = defineCrc('crc-8-dvbs2', crc8dvbs2$1);
+
+export { crc8dvbs2 as default };
+
+//# sourceMappingURL=crc8dvbs2.map

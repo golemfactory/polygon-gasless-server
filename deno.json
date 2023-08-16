@@ -1,14 +1,15 @@
 {
-    "tasks": {
-        "server": "deno run --allow-read=. --allow-env server.ts"
-    },
-    "fmt": {
-        "options": {
-            "useTabs": false,
-            "lineWidth": 200,
-            "indentWidth": 4,
-            "singleQuote": true,
-            "proseWrap": "preserve"
-        }
+  "tasks": {
+    "server": "deno run --allow-read=. --allow-env server.ts",
+    "dev": "deno run --allow-read --allow-env --allow-net --watch server.ts"
+  },
+  "fmt": {
+    "options": {
+      "useTabs": false,
+      "lineWidth": 200,
+      "indentWidth": 4,
+      "singleQuote": true,
+      "proseWrap": "preserve"
     }
+  }
 }

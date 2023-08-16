@@ -1,0 +1,5 @@
+import { d as dew } from './_/d2db80e9.js';
+
+var global = dew();
+
+export { global as default };

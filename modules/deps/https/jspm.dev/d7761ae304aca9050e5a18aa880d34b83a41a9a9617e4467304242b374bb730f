@@ -1,0 +1,53 @@
+import _buffer from '/npm:buffer@5!cjs';
+import _varint from '/npm:varint@5!cjs';
+
+var exports = {};
+const varint = _varint;
+const {
+  Buffer
+} = _buffer;
+exports = {
+  numberToBuffer,
+  bufferToNumber,
+  varintBufferEncode,
+  varintBufferDecode,
+  varintEncode
+};
+
+function bufferToNumber(buf) {
+  return parseInt(buf.toString("hex"), 16);
+}
+
+function numberToBuffer(num) {
+  let hexString = num.toString(16);
+
+  if (hexString.length % 2 === 1) {
+    hexString = "0" + hexString;
+  }
+
+  return Buffer.from(hexString, "hex");
+}
+
+function varintBufferEncode(input) {
+  return Buffer.from(varint.encode(bufferToNumber(input)));
+}
+
+function varintBufferDecode(input) {
+  return numberToBuffer(varint.decode(input));
+}
+
+function varintEncode(num) {
+  return Buffer.from(varint.encode(num));
+}
+
+var _util = exports;
+const _numberToBuffer = exports.numberToBuffer,
+      _bufferToNumber = exports.bufferToNumber,
+      _varintBufferEncode = exports.varintBufferEncode,
+      _varintBufferDecode = exports.varintBufferDecode,
+      _varintEncode = exports.varintEncode;
+
+export default _util;
+export { _bufferToNumber as bufferToNumber, _numberToBuffer as numberToBuffer, _varintBufferDecode as varintBufferDecode, _varintBufferEncode as varintBufferEncode, _varintEncode as varintEncode };
+
+//# sourceMappingURL=util!cjs.map

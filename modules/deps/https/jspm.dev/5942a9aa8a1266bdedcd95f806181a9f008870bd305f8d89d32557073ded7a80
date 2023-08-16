@@ -1,0 +1,2 @@
+import "/npm:@jspm/core@2/nodelibs/process";
+export { default } from "/npm:scrypt-js@3.0.1!cjs";

@@ -1,0 +1,29 @@
+{
+  "headers": {
+    "x-cf-reqid": "7cd5c7816ff3de627fe294590fe75e3c",
+    "cf4ttl": "200.000",
+    "access-control-allow-origin": "*",
+    "etag": "\"38414ed4c81241f7a5c6611d3b2a8b7c\"",
+    "cache-control": "public, max-age=200",
+    "last-modified": "Mon, 13 Feb 2023 01:51:01 GMT",
+    "cross-origin-resource-policy": "cross-origin",
+    "accept-ranges": "bytes",
+    "access-control-expose-headers": "Content-Length, Content-Type, Date, Server, Transfer-Encoding, X-GUploader-UploadID, X-Google-Trace",
+    "x-cf1": "29748:fE.waw1:co:1669825690:cacheN.waw1-01:M",
+    "expires": "Wed, 16 Aug 2023 04:43:02 GMT",
+    "server": "CFS 0215",
+    "content-type": "text/javascript; charset=utf-8",
+    "x-cff": "B",
+    "x-cf-rand": "9.731",
+    "x-cf3": "H",
+    "date": "Wed, 16 Aug 2023 08:04:54 GMT",
+    "cf4age": "10982",
+    "x-cf2": "H",
+    "x-cf-tsc": "1692171765"
+  },
+  "url": "https://jspm.dev/npm:@jspm/core@2/nodelibs/events",
+  "now": {
+    "secs_since_epoch": 1692173094,
+    "nanos_since_epoch": 689589000
+  }
+}

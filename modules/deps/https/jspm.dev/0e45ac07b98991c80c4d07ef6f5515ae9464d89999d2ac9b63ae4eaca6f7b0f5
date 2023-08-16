@@ -1,0 +1,37 @@
+import * as _randombytes2 from '../npm:randombytes@2!cjs';
+
+var _randombytes = "default" in _randombytes2 ? _randombytes2.default : _randombytes2;
+
+var exports = {};
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var randombytes = _randombytes;
+
+function getRandomBytes(bytes) {
+  return new Promise(function (resolve, reject) {
+    randombytes(bytes, function (err, resp) {
+      if (err) {
+        reject(err);
+        return;
+      }
+
+      resolve(resp);
+    });
+  });
+}
+
+exports.getRandomBytes = getRandomBytes;
+
+function getRandomBytesSync(bytes) {
+  return randombytes(bytes);
+}
+
+exports.getRandomBytesSync = getRandomBytesSync; 
+const __esModule = exports.__esModule;
+const _getRandomBytes = exports.getRandomBytes,
+      _getRandomBytesSync = exports.getRandomBytesSync;
+
+export { __esModule, exports as default, _getRandomBytes as getRandomBytes, _getRandomBytesSync as getRandomBytesSync };
+
+//# sourceMappingURL=random!cjs.map

@@ -1,0 +1,11 @@
+import { _ as _lib } from './npm:secp256k1@4.0.3/_/9192dda6.js';
+import _elliptic$1 from './npm:secp256k1@4.0.3/lib/elliptic!cjs';
+import './npm:elliptic@6!cjs';
+
+var exports = {};
+exports = _lib(_elliptic$1);
+var _elliptic = exports;
+
+export { _elliptic as default };
+
+//# sourceMappingURL=npm:secp256k1@4.0.3!cjs.map

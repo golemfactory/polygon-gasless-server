@@ -1,0 +1,9 @@
+import crc1$1 from './calculators/crc1';
+import { d as defineCrc } from './_/a7365c44.js';
+import '../npm:buffer';
+
+var crc1 = defineCrc('crc1', crc1$1);
+
+export { crc1 as default };
+
+//# sourceMappingURL=crc1.map

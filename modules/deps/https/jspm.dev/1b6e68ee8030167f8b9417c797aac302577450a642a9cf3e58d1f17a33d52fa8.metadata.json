@@ -1,0 +1,28 @@
+{
+  "headers": {
+    "date": "Wed, 16 Aug 2023 08:04:57 GMT",
+    "server": "CFS 0215",
+    "x-cf1": "29748:fE.waw1:co:1669825690:cacheN.waw1-01:M",
+    "x-cf-tsc": "1691625572",
+    "cross-origin-resource-policy": "cross-origin",
+    "cf4age": "15344148",
+    "last-modified": "Mon, 13 Feb 2023 01:50:42 GMT",
+    "access-control-expose-headers": "Content-Type",
+    "cf4ttl": "604800.000",
+    "access-control-allow-origin": "*",
+    "expires": "Mon, 20 Feb 2023 09:43:42 GMT",
+    "x-cf2": "H",
+    "accept-ranges": "bytes",
+    "content-type": "text/javascript; charset=utf-8",
+    "x-cf3": "H",
+    "x-cf-reqid": "8e6f33ca373f0655cfcb91ba2259c056",
+    "x-cff": "B",
+    "etag": "\"24a8cf86acf9bf17b5beb62f43c11143\"",
+    "cache-control": "public, max-age=31536000, s-maxage=604800, immutable"
+  },
+  "url": "https://jspm.dev/npm:@jspm/core@2.0.1/nodelibs/crypto",
+  "now": {
+    "secs_since_epoch": 1692173097,
+    "nanos_since_epoch": 649819000
+  }
+}

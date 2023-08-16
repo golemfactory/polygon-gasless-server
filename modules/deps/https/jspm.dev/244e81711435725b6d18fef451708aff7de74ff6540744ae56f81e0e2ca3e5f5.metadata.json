@@ -1,0 +1,29 @@
+{
+  "headers": {
+    "access-control-expose-headers": "Content-Type",
+    "cf4age": "0",
+    "etag": "\"73a5a6875f365ee046da6d054823d776\"",
+    "x-cff": "B",
+    "cross-origin-resource-policy": "cross-origin",
+    "last-modified": "Sun, 04 Jun 2023 12:41:04 GMT",
+    "content-type": "text/javascript; charset=utf-8",
+    "x-cf2": "H",
+    "x-cf-tsc": "1692171769",
+    "date": "Wed, 16 Aug 2023 08:04:58 GMT",
+    "x-cf-rand": "40.408",
+    "cf4ttl": "604800.000",
+    "expires": "Wed, 23 Aug 2023 07:42:48 GMT",
+    "access-control-allow-origin": "*",
+    "accept-ranges": "bytes",
+    "cache-control": "public, max-age=31536000, s-maxage=604800, immutable",
+    "x-cf-reqid": "9f5e53312cb71b45819c569090631f4f",
+    "x-cf3": "M",
+    "server": "CFS 0215",
+    "x-cf1": "29748:fE.waw1:co:1669825690:cacheN.waw1-01:M"
+  },
+  "url": "https://jspm.dev/npm:@noble/curves@1.1.0/abstract/curve",
+  "now": {
+    "secs_since_epoch": 1692173098,
+    "nanos_since_epoch": 940454000
+  }
+}

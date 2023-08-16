@@ -1,0 +1,28 @@
+{
+  "headers": {
+    "x-cf-tsc": "1692171766",
+    "content-type": "text/javascript; charset=utf-8",
+    "date": "Wed, 16 Aug 2023 08:04:56 GMT",
+    "etag": "\"fab9644e6285b45f541bcd3f9a5ed59a\"",
+    "access-control-allow-origin": "*",
+    "x-cf3": "H",
+    "expires": "Sun, 20 Aug 2023 16:15:49 GMT",
+    "cross-origin-resource-policy": "cross-origin",
+    "cf4ttl": "604800.000",
+    "x-cf1": "29748:fE.waw1:co:1669825690:cacheN.waw1-01:M",
+    "server": "CFS 0215",
+    "x-cff": "B",
+    "cache-control": "public, max-age=31536000, s-maxage=604800, immutable",
+    "accept-ranges": "bytes",
+    "x-cf2": "H",
+    "cf4age": "228416",
+    "last-modified": "Fri, 09 Sep 2022 06:10:30 GMT",
+    "access-control-expose-headers": "Content-Type",
+    "x-cf-reqid": "2df44cc55b8ceb95bb4060c9fa905b7b"
+  },
+  "url": "https://jspm.dev/npm:swarm-js@0.1.42!cjs",
+  "now": {
+    "secs_since_epoch": 1692173096,
+    "nanos_since_epoch": 91754000
+  }
+}

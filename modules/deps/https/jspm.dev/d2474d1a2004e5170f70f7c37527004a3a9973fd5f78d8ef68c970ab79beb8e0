@@ -1,0 +1,23 @@
+import { BigNumber } from './bignumber@5';
+
+const AddressZero = "0x0000000000000000000000000000000000000000";
+
+const NegativeOne = ( /*#__PURE__*/BigNumber.from(-1));
+const Zero = ( /*#__PURE__*/BigNumber.from(0));
+const One = ( /*#__PURE__*/BigNumber.from(1));
+const Two = ( /*#__PURE__*/BigNumber.from(2));
+const WeiPerEther = ( /*#__PURE__*/BigNumber.from("1000000000000000000"));
+const MaxUint256 = ( /*#__PURE__*/BigNumber.from("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"));
+const MinInt256 = ( /*#__PURE__*/BigNumber.from("-0x8000000000000000000000000000000000000000000000000000000000000000"));
+const MaxInt256 = ( /*#__PURE__*/BigNumber.from("0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"));
+
+const HashZero = "0x0000000000000000000000000000000000000000000000000000000000000000";
+
+// NFKC (composed)             // (decomposed)
+const EtherSymbol = "\u039e"; // "\uD835\uDF63";
+
+"use strict";
+
+export { AddressZero, EtherSymbol, HashZero, MaxInt256, MaxUint256, MinInt256, NegativeOne, One, Two, WeiPerEther, Zero };
+
+//# sourceMappingURL=constants@5.7.0.map

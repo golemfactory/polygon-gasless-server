@@ -1,0 +1,28 @@
+{
+  "headers": {
+    "cache-control": "public, max-age=31536000, s-maxage=604800, immutable",
+    "cf4ttl": "604800.000",
+    "date": "Wed, 16 Aug 2023 08:04:57 GMT",
+    "x-cf1": "29748:fE.waw1:co:1669825690:cacheN.waw1-01:M",
+    "accept-ranges": "bytes",
+    "x-cf-reqid": "d4b036314c58ac7902fa2ca59c7617ec",
+    "x-cf2": "H",
+    "server": "CFS 0215",
+    "access-control-allow-origin": "*",
+    "cross-origin-resource-policy": "cross-origin",
+    "x-cf3": "H",
+    "x-cff": "B",
+    "last-modified": "Fri, 19 Aug 2022 21:22:22 GMT",
+    "expires": "Sun, 20 Aug 2023 16:15:50 GMT",
+    "x-cf-tsc": "1692171767",
+    "access-control-expose-headers": "Content-Type",
+    "cf4age": "228416",
+    "content-type": "text/javascript; charset=utf-8",
+    "etag": "\"5bb2f5433f5c6cf267bded769db493db\""
+  },
+  "url": "https://jspm.dev/npm:@ethersproject/transactions@5.7.0",
+  "now": {
+    "secs_since_epoch": 1692173097,
+    "nanos_since_epoch": 12731000
+  }
+}

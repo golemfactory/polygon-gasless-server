@@ -1,0 +1,31 @@
+{
+  "headers": {
+    "last-modified": "Thu, 04 Jun 2020 02:42:23 GMT",
+    "access-control-allow-origin": "*",
+    "x-cf2": "H",
+    "server": "CFS 0215",
+    "etag": "\"4a33233492e16beff2643d5322875246\"",
+    "x-cf-reqid": "eed2c451fb961b7639c5cfaa3775afba",
+    "accept-ranges": "bytes",
+    "x-cf3": "M",
+    "cross-origin-resource-policy": "cross-origin",
+    "date": "Wed, 16 Aug 2023 08:04:56 GMT",
+    "cf4age": "0",
+    "vary": "X-Goog-Allowed-Resources",
+    "content-type": "application/javascript",
+    "x-cff": "B",
+    "x-cf-rand": "30.527",
+    "cache-control": "public, max-age=200",
+    "cf4ttl": "200.000",
+    "access-control-expose-headers": "Content-Type",
+    "x-cf-tsc": "1692171766",
+    "x-cf1": "29748:fE.waw1:co:1669825690:cacheN.waw1-01:M",
+    "content-language": "en",
+    "expires": "Wed, 16 Aug 2023 07:46:05 GMT"
+  },
+  "url": "https://jspm.dev/number-to-bn",
+  "now": {
+    "secs_since_epoch": 1692173096,
+    "nanos_since_epoch": 99684000
+  }
+}

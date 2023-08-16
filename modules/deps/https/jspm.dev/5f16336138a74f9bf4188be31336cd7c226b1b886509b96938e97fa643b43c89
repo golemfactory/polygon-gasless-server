@@ -1,0 +1,1741 @@
+import { secp256k1 } from '../npm:ethereum-cryptography@2/secp256k1.js';
+import { getRandomBytesSync } from '../npm:ethereum-cryptography@2/random.js';
+import { utf8ToBytes, bytesToHex as bytesToHex$1, hexToBytes as hexToBytes$1, equalsBytes } from '../npm:ethereum-cryptography@2/utils.js';
+export { bytesToUtf8, equalsBytes, utf8ToBytes } from '../npm:ethereum-cryptography@2/utils.js';
+import { RLP } from './rlp@5';
+import { keccak256 } from '../npm:ethereum-cryptography@2/keccak.js';
+import { EventEmitter } from '../npm:@jspm/core@2/nodelibs/events';
+import { sha256 } from '../npm:ethereum-cryptography@2/sha256.js';
+
+/*
+The MIT License
+
+Copyright (c) 2016 Nick Dodson. nickdodson.com
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE
+ */
+/**
+ * Returns a `Boolean` on whether or not the a `String` starts with '0x'
+ * @param str the string input value
+ * @return a boolean if it is or is not hex prefixed
+ * @throws if the str input is not a string
+ */
+function isHexPrefixed(str) {
+    if (typeof str !== 'string') {
+        throw new Error(`[isHexPrefixed] input must be type 'string', received type ${typeof str}`);
+    }
+    return str[0] === '0' && str[1] === 'x';
+}
+/**
+ * Removes '0x' from a given `String` if present
+ * @param str the string value
+ * @returns the string without 0x prefix
+ */
+const stripHexPrefix = (str) => {
+    if (typeof str !== 'string')
+        throw new Error(`[stripHexPrefix] input must be type 'string', received ${typeof str}`);
+    return isHexPrefixed(str) ? str.slice(2) : str;
+};
+/**
+ * Pads a `String` to have an even length
+ * @param value
+ * @return output
+ */
+function padToEven(value) {
+    let a = value;
+    if (typeof a !== 'string') {
+        throw new Error(`[padToEven] value must be type 'string', received ${typeof a}`);
+    }
+    if (a.length % 2)
+        a = `0${a}`;
+    return a;
+}
+/**
+ * Get the binary size of a string
+ * @param str
+ * @returns the number of bytes contained within the string
+ */
+function getBinarySize(str) {
+    if (typeof str !== 'string') {
+        throw new Error(`[getBinarySize] method requires input type 'string', received ${typeof str}`);
+    }
+    return utf8ToBytes(str).byteLength;
+}
+/**
+ * Returns TRUE if the first specified array contains all elements
+ * from the second one. FALSE otherwise.
+ *
+ * @param superset
+ * @param subset
+ *
+ */
+function arrayContainsArray(superset, subset, some) {
+    if (Array.isArray(superset) !== true) {
+        throw new Error(`[arrayContainsArray] method requires input 'superset' to be an array, got type '${typeof superset}'`);
+    }
+    if (Array.isArray(subset) !== true) {
+        throw new Error(`[arrayContainsArray] method requires input 'subset' to be an array, got type '${typeof subset}'`);
+    }
+    return subset[some === true ? 'some' : 'every']((value) => superset.indexOf(value) >= 0);
+}
+/**
+ * Should be called to get ascii from its hex representation
+ *
+ * @param string in hex
+ * @returns ascii string representation of hex value
+ */
+function toAscii(hex) {
+    let str = '';
+    let i = 0;
+    const l = hex.length;
+    if (hex.substring(0, 2) === '0x')
+        i = 2;
+    for (; i < l; i += 2) {
+        const code = parseInt(hex.substr(i, 2), 16);
+        str += String.fromCharCode(code);
+    }
+    return str;
+}
+/**
+ * Should be called to get hex representation (prefixed by 0x) of utf8 string
+ *
+ * @param string
+ * @param optional padding
+ * @returns hex representation of input string
+ */
+function fromUtf8(stringValue) {
+    const str = utf8ToBytes(stringValue);
+    return `0x${padToEven(bytesToHex(str)).replace(/^0+|0+$/g, '')}`;
+}
+/**
+ * Should be called to get hex representation (prefixed by 0x) of ascii string
+ *
+ * @param  string
+ * @param  optional padding
+ * @returns  hex representation of input string
+ */
+function fromAscii(stringValue) {
+    let hex = '';
+    for (let i = 0; i < stringValue.length; i++) {
+        const code = stringValue.charCodeAt(i);
+        const n = code.toString(16);
+        hex += n.length < 2 ? `0${n}` : n;
+    }
+    return `0x${hex}`;
+}
+/**
+ * Returns the keys from an array of objects.
+ * @example
+ * ```js
+ * getKeys([{a: '1', b: '2'}, {a: '3', b: '4'}], 'a') => ['1', '3']
+ *````
+ * @param  params
+ * @param  key
+ * @param  allowEmpty
+ * @returns output just a simple array of output keys
+ */
+function getKeys(params, key, allowEmpty) {
+    if (!Array.isArray(params)) {
+        throw new Error(`[getKeys] method expects input 'params' to be an array, got ${typeof params}`);
+    }
+    if (typeof key !== 'string') {
+        throw new Error(`[getKeys] method expects input 'key' to be type 'string', got ${typeof params}`);
+    }
+    const result = [];
+    for (let i = 0; i < params.length; i++) {
+        let value = params[i][key];
+        if (allowEmpty === true && !value) {
+            value = '';
+        }
+        else if (typeof value !== 'string') {
+            throw new Error(`invalid abi - expected type 'string', received ${typeof value}`);
+        }
+        result.push(value);
+    }
+    return result;
+}
+/**
+ * Is the string a hex string.
+ *
+ * @param  value
+ * @param  length
+ * @returns  output the string is a hex string
+ */
+function isHexString(value, length) {
+    if (typeof value !== 'string' || !value.match(/^0x[0-9A-Fa-f]*$/))
+        return false;
+    if (typeof length !== 'undefined' && length > 0 && value.length !== 2 + 2 * length)
+        return false;
+    return true;
+}
+
+/**
+ * Throws if a string is not hex prefixed
+ * @param {string} input string to check hex prefix of
+ */
+const assertIsHexString = function (input) {
+    if (!isHexString(input)) {
+        const msg = `This method only supports 0x-prefixed hex strings but input was: ${input}`;
+        throw new Error(msg);
+    }
+};
+/**
+ * Throws if input is not a buffer
+ * @param {Buffer} input value to check
+ */
+const assertIsBytes = function (input) {
+    if (!(input instanceof Uint8Array)) {
+        const msg = `This method only supports Uint8Array but input was: ${input}`;
+        throw new Error(msg);
+    }
+};
+/**
+ * Throws if input is not an array
+ * @param {number[]} input value to check
+ */
+const assertIsArray = function (input) {
+    if (!Array.isArray(input)) {
+        const msg = `This method only supports number arrays but input was: ${input}`;
+        throw new Error(msg);
+    }
+};
+/**
+ * Throws if input is not a string
+ * @param {string} input value to check
+ */
+const assertIsString = function (input) {
+    if (typeof input !== 'string') {
+        const msg = `This method only supports strings but input was: ${input}`;
+        throw new Error(msg);
+    }
+};
+
+/**
+ * @deprecated
+ */
+const bytesToUnprefixedHex = bytesToHex$1;
+/**
+ * @deprecated
+ */
+const unprefixedHexToBytes = (inp) => {
+    if (inp.slice(0, 2) === '0x') {
+        throw new Error('hex string is prefixed with 0x, should be unprefixed');
+    }
+    else {
+        return hexToBytes$1(padToEven(inp));
+    }
+};
+/****************  Borrowed from @chainsafe/ssz */
+// Caching this info costs about ~1000 bytes and speeds up toHexString() by x6
+const hexByByte = Array.from({ length: 256 }, (v, i) => i.toString(16).padStart(2, '0'));
+const bytesToHex = (bytes) => {
+    let hex = '0x';
+    if (bytes === undefined || bytes.length === 0)
+        return hex;
+    for (const byte of bytes) {
+        hex += hexByByte[byte];
+    }
+    return hex;
+};
+/**
+ * Converts a {@link Uint8Array} to a {@link bigint}
+ * @param {Uint8Array} bytes the bytes to convert
+ * @returns {bigint}
+ */
+const bytesToBigInt = (bytes) => {
+    const hex = bytesToHex(bytes);
+    if (hex === '0x') {
+        return BigInt(0);
+    }
+    return BigInt(hex);
+};
+/**
+ * Converts a {@link Uint8Array} to a {@link number}.
+ * @param {Uint8Array} bytes the bytes to convert
+ * @return  {number}
+ * @throws If the input number exceeds 53 bits.
+ */
+const bytesToInt = (bytes) => {
+    const res = Number(bytesToBigInt(bytes));
+    if (!Number.isSafeInteger(res))
+        throw new Error('Number exceeds 53 bits');
+    return res;
+};
+const hexToBytes = (hex) => {
+    if (typeof hex !== 'string') {
+        throw new Error(`hex argument type ${typeof hex} must be of type string`);
+    }
+    if (!hex.startsWith('0x')) {
+        throw new Error(`prefixed hex input should start with 0x, got ${hex.substring(0, 2)}`);
+    }
+    hex = hex.slice(2);
+    if (hex.length % 2 !== 0) {
+        hex = padToEven(hex);
+    }
+    const byteLen = hex.length / 2;
+    const bytes = new Uint8Array(byteLen);
+    for (let i = 0; i < byteLen; i++) {
+        const byte = parseInt(hex.slice(i * 2, (i + 1) * 2), 16);
+        bytes[i] = byte;
+    }
+    return bytes;
+};
+/******************************************/
+/**
+ * Converts a {@link number} into a {@link PrefixedHexString}
+ * @param {number} i
+ * @return {PrefixedHexString}
+ */
+const intToHex = (i) => {
+    if (!Number.isSafeInteger(i) || i < 0) {
+        throw new Error(`Received an invalid integer type: ${i}`);
+    }
+    return `0x${i.toString(16)}`;
+};
+/**
+ * Converts an {@link number} to a {@link Uint8Array}
+ * @param {Number} i
+ * @return {Uint8Array}
+ */
+const intToBytes = (i) => {
+    const hex = intToHex(i);
+    return hexToBytes(hex);
+};
+/**
+ * Converts a {@link bigint} to a {@link Uint8Array}
+ *  * @param {bigint} num the bigint to convert
+ * @returns {Uint8Array}
+ */
+const bigIntToBytes = (num) => {
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
+    return toBytes('0x' + padToEven(num.toString(16)));
+};
+/**
+ * Returns a Uint8Array filled with 0s.
+ * @param {number} bytes the number of bytes of the Uint8Array
+ * @return {Uint8Array}
+ */
+const zeros = (bytes) => {
+    return new Uint8Array(bytes);
+};
+/**
+ * Pads a `Uint8Array` with zeros till it has `length` bytes.
+ * Truncates the beginning or end of input if its length exceeds `length`.
+ * @param {Uint8Array} msg the value to pad
+ * @param {number} length the number of bytes the output should be
+ * @param {boolean} right whether to start padding form the left or right
+ * @return {Uint8Array}
+ */
+const setLength = (msg, length, right) => {
+    if (right) {
+        if (msg.length < length) {
+            return new Uint8Array([...msg, ...zeros(length - msg.length)]);
+        }
+        return msg.subarray(0, length);
+    }
+    else {
+        if (msg.length < length) {
+            return new Uint8Array([...zeros(length - msg.length), ...msg]);
+        }
+        return msg.subarray(-length);
+    }
+};
+/**
+ * Left Pads a `Uint8Array` with leading zeros till it has `length` bytes.
+ * Or it truncates the beginning if it exceeds.
+ * @param {Uint8Array} msg the value to pad
+ * @param {number} length the number of bytes the output should be
+ * @return {Uint8Array}
+ */
+const setLengthLeft = (msg, length) => {
+    assertIsBytes(msg);
+    return setLength(msg, length, false);
+};
+/**
+ * Right Pads a `Uint8Array` with trailing zeros till it has `length` bytes.
+ * it truncates the end if it exceeds.
+ * @param {Uint8Array} msg the value to pad
+ * @param {number} length the number of bytes the output should be
+ * @return {Uint8Array}
+ */
+const setLengthRight = (msg, length) => {
+    assertIsBytes(msg);
+    return setLength(msg, length, true);
+};
+/**
+ * Trims leading zeros from a `Uint8Array`, `number[]` or PrefixedHexString`.
+ * @param {Uint8Array|number[]|PrefixedHexString} a
+ * @return {Uint8Array|number[]|PrefixedHexString}
+ */
+const stripZeros = (a) => {
+    let first = a[0];
+    while (a.length > 0 && first.toString() === '0') {
+        a = a.slice(1);
+        first = a[0];
+    }
+    return a;
+};
+/**
+ * Trims leading zeros from a `Uint8Array`.
+ * @param {Uint8Array} a
+ * @return {Uint8Array}
+ */
+const unpadBytes = (a) => {
+    assertIsBytes(a);
+    return stripZeros(a);
+};
+/**
+ * Trims leading zeros from an `Array` (of numbers).
+ * @param  {number[]} a
+ * @return {number[]}
+ */
+const unpadArray = (a) => {
+    assertIsArray(a);
+    return stripZeros(a);
+};
+/**
+ * Trims leading zeros from a `PrefixedHexString`.
+ * @param {PrefixedHexString} a
+ * @return {PrefixedHexString}
+ */
+const unpadHex = (a) => {
+    assertIsHexString(a);
+    a = stripHexPrefix(a);
+    return '0x' + stripZeros(a);
+};
+/**
+ * Attempts to turn a value into a `Uint8Array`.
+ * Inputs supported: `Buffer`, `Uint8Array`, `String` (hex-prefixed), `Number`, null/undefined, `BigInt` and other objects
+ * with a `toArray()` or `toBytes()` method.
+ * @param {ToBytesInputTypes} v the value
+ * @return {Uint8Array}
+ */
+const toBytes = (v) => {
+    if (v === null || v === undefined) {
+        return new Uint8Array();
+    }
+    if (Array.isArray(v) || v instanceof Uint8Array) {
+        return Uint8Array.from(v);
+    }
+    if (typeof v === 'string') {
+        if (!isHexString(v)) {
+            throw new Error(`Cannot convert string to Uint8Array. toBytes only supports 0x-prefixed hex strings and this string was given: ${v}`);
+        }
+        return hexToBytes(v);
+    }
+    if (typeof v === 'number') {
+        return intToBytes(v);
+    }
+    if (typeof v === 'bigint') {
+        if (v < BigInt(0)) {
+            throw new Error(`Cannot convert negative bigint to Uint8Array. Given: ${v}`);
+        }
+        let n = v.toString(16);
+        if (n.length % 2)
+            n = '0' + n;
+        return unprefixedHexToBytes(n);
+    }
+    if (v.toBytes !== undefined) {
+        // converts a `TransformableToBytes` object to a Uint8Array
+        return v.toBytes();
+    }
+    throw new Error('invalid type');
+};
+/**
+ * Interprets a `Uint8Array` as a signed integer and returns a `BigInt`. Assumes 256-bit numbers.
+ * @param {Uint8Array} num Signed integer value
+ * @returns {bigint}
+ */
+const fromSigned = (num) => {
+    return BigInt.asIntN(256, bytesToBigInt(num));
+};
+/**
+ * Converts a `BigInt` to an unsigned integer and returns it as a `Uint8Array`. Assumes 256-bit numbers.
+ * @param {bigint} num
+ * @returns {Uint8Array}
+ */
+const toUnsigned = (num) => {
+    return bigIntToBytes(BigInt.asUintN(256, num));
+};
+/**
+ * Adds "0x" to a given `string` if it does not already start with "0x".
+ * @param {string} str
+ * @return {PrefixedHexString}
+ */
+const addHexPrefix = (str) => {
+    if (typeof str !== 'string') {
+        return str;
+    }
+    return isHexPrefixed(str) ? str : '0x' + str;
+};
+/**
+ * Shortens a string  or Uint8Array's hex string representation to maxLength (default 50).
+ *
+ * Examples:
+ *
+ * Input:  '657468657265756d000000000000000000000000000000000000000000000000'
+ * Output: '657468657265756d0000000000000000000000000000000000…'
+ * @param {Uint8Array | string} bytes
+ * @param {number} maxLength
+ * @return {string}
+ */
+const short = (bytes, maxLength = 50) => {
+    const byteStr = bytes instanceof Uint8Array ? bytesToHex(bytes) : bytes;
+    const len = byteStr.slice(0, 2) === '0x' ? maxLength + 2 : maxLength;
+    if (byteStr.length <= len) {
+        return byteStr;
+    }
+    return byteStr.slice(0, len) + '…';
+};
+/**
+ * Checks provided Uint8Array for leading zeroes and throws if found.
+ *
+ * Examples:
+ *
+ * Valid values: 0x1, 0x, 0x01, 0x1234
+ * Invalid values: 0x0, 0x00, 0x001, 0x0001
+ *
+ * Note: This method is useful for validating that RLP encoded integers comply with the rule that all
+ * integer values encoded to RLP must be in the most compact form and contain no leading zero bytes
+ * @param values An object containing string keys and Uint8Array values
+ * @throws if any provided value is found to have leading zero bytes
+ */
+const validateNoLeadingZeroes = (values) => {
+    for (const [k, v] of Object.entries(values)) {
+        if (v !== undefined && v.length > 0 && v[0] === 0) {
+            throw new Error(`${k} cannot have leading zeroes, received: ${bytesToHex(v)}`);
+        }
+    }
+};
+/**
+ * Converts a {@link bigint} to a `0x` prefixed hex string
+ * @param {bigint} num the bigint to convert
+ * @returns {PrefixedHexString}
+ */
+const bigIntToHex = (num) => {
+    return '0x' + num.toString(16);
+};
+/**
+ * Convert value from bigint to an unpadded Uint8Array
+ * (useful for RLP transport)
+ * @param {bigint} value the bigint to convert
+ * @returns {Uint8Array}
+ */
+const bigIntToUnpaddedBytes = (value) => {
+    return unpadBytes(bigIntToBytes(value));
+};
+/**
+ * Convert value from number to an unpadded Uint8Array
+ * (useful for RLP transport)
+ * @param {number} value the bigint to convert
+ * @returns {Uint8Array}
+ */
+const intToUnpaddedBytes = (value) => {
+    return unpadBytes(intToBytes(value));
+};
+/**
+ * Compares two Uint8Arrays and returns a number indicating their order in a sorted array.
+ *
+ * @param {Uint8Array} value1 - The first Uint8Array to compare.
+ * @param {Uint8Array} value2 - The second Uint8Array to compare.
+ * @returns {number} A positive number if value1 is larger than value2,
+ *                   A negative number if value1 is smaller than value2,
+ *                   or 0 if value1 and value2 are equal.
+ */
+const compareBytes = (value1, value2) => {
+    const bigIntValue1 = bytesToBigInt(value1);
+    const bigIntValue2 = bytesToBigInt(value2);
+    return bigIntValue1 > bigIntValue2 ? 1 : bigIntValue1 < bigIntValue2 ? -1 : 0;
+};
+/**
+ * Generates a Uint8Array of random bytes of specified length.
+ *
+ * @param {number} length - The length of the Uint8Array.
+ * @returns {Uint8Array} A Uint8Array of random bytes of specified length.
+ */
+const randomBytes = (length) => {
+    return getRandomBytesSync(length);
+};
+/**
+ * This mirrors the functionality of the `ethereum-cryptography` export except
+ * it skips the check to validate that every element of `arrays` is indead a `uint8Array`
+ * Can give small performance gains on large arrays
+ * @param {Uint8Array[]} arrays an array of Uint8Arrays
+ * @returns {Uint8Array} one Uint8Array with all the elements of the original set
+ * works like `Buffer.concat`
+ */
+const concatBytes = (...arrays) => {
+    if (arrays.length === 1)
+        return arrays[0];
+    const length = arrays.reduce((a, arr) => a + arr.length, 0);
+    const result = new Uint8Array(length);
+    for (let i = 0, pad = 0; i < arrays.length; i++) {
+        const arr = arrays[i];
+        result.set(arr, pad);
+        pad += arr.length;
+    }
+    return result;
+};
+
+/**
+ * 2^64-1
+ */
+const MAX_UINT64 = BigInt('0xffffffffffffffff');
+/**
+ * The max integer that the evm can handle (2^256-1)
+ */
+const MAX_INTEGER = BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff');
+/**
+ * The max integer that the evm can handle (2^256-1) as a bigint
+ * 2^256-1 equals to 340282366920938463463374607431768211455
+ * We use literal value instead of calculated value for compatibility issue.
+ */
+const MAX_INTEGER_BIGINT = BigInt('115792089237316195423570985008687907853269984665640564039457584007913129639935');
+const SECP256K1_ORDER = secp256k1.CURVE.n;
+const SECP256K1_ORDER_DIV_2 = secp256k1.CURVE.n / BigInt(2);
+/**
+ * 2^256
+ */
+const TWO_POW256 = BigInt('0x10000000000000000000000000000000000000000000000000000000000000000');
+/**
+ * Keccak-256 hash of null
+ */
+const KECCAK256_NULL_S = '0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470';
+/**
+ * Keccak-256 hash of null
+ */
+const KECCAK256_NULL = hexToBytes(KECCAK256_NULL_S);
+/**
+ * Keccak-256 of an RLP of an empty array
+ */
+const KECCAK256_RLP_ARRAY_S = '0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347';
+/**
+ * Keccak-256 of an RLP of an empty array
+ */
+const KECCAK256_RLP_ARRAY = hexToBytes(KECCAK256_RLP_ARRAY_S);
+/**
+ * Keccak-256 hash of the RLP of null
+ */
+const KECCAK256_RLP_S = '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421';
+/**
+ * Keccak-256 hash of the RLP of null
+ */
+const KECCAK256_RLP = hexToBytes(KECCAK256_RLP_S);
+/**
+ *  RLP encoded empty string
+ */
+const RLP_EMPTY_STRING = Uint8Array.from([0x80]);
+const MAX_WITHDRAWALS_PER_PAYLOAD = 16;
+const RIPEMD160_ADDRESS_STRING = '0000000000000000000000000000000000000003';
+
+/** Easy conversion from Gwei to wei */
+const GWEI_TO_WEI = BigInt(1000000000);
+
+const _0n = BigInt(0);
+class Account {
+    /**
+     * This constructor assigns and validates the values.
+     * Use the static factory methods to assist in creating an Account from varying data types.
+     */
+    constructor(nonce = _0n, balance = _0n, storageRoot = KECCAK256_RLP, codeHash = KECCAK256_NULL) {
+        this.nonce = nonce;
+        this.balance = balance;
+        this.storageRoot = storageRoot;
+        this.codeHash = codeHash;
+        this._validate();
+    }
+    static fromAccountData(accountData) {
+        const { nonce, balance, storageRoot, codeHash } = accountData;
+        return new Account(nonce !== undefined ? bytesToBigInt(toBytes(nonce)) : undefined, balance !== undefined ? bytesToBigInt(toBytes(balance)) : undefined, storageRoot !== undefined ? toBytes(storageRoot) : undefined, codeHash !== undefined ? toBytes(codeHash) : undefined);
+    }
+    static fromRlpSerializedAccount(serialized) {
+        const values = RLP.decode(serialized);
+        if (!Array.isArray(values)) {
+            throw new Error('Invalid serialized account input. Must be array');
+        }
+        return this.fromValuesArray(values);
+    }
+    static fromValuesArray(values) {
+        const [nonce, balance, storageRoot, codeHash] = values;
+        return new Account(bytesToBigInt(nonce), bytesToBigInt(balance), storageRoot, codeHash);
+    }
+    _validate() {
+        if (this.nonce < _0n) {
+            throw new Error('nonce must be greater than zero');
+        }
+        if (this.balance < _0n) {
+            throw new Error('balance must be greater than zero');
+        }
+        if (this.storageRoot.length !== 32) {
+            throw new Error('storageRoot must have a length of 32');
+        }
+        if (this.codeHash.length !== 32) {
+            throw new Error('codeHash must have a length of 32');
+        }
+    }
+    /**
+     * Returns an array of Uint8Arrays of the raw bytes for the account, in order.
+     */
+    raw() {
+        return [
+            bigIntToUnpaddedBytes(this.nonce),
+            bigIntToUnpaddedBytes(this.balance),
+            this.storageRoot,
+            this.codeHash,
+        ];
+    }
+    /**
+     * Returns the RLP serialization of the account as a `Uint8Array`.
+     */
+    serialize() {
+        return RLP.encode(this.raw());
+    }
+    /**
+     * Returns a `Boolean` determining if the account is a contract.
+     */
+    isContract() {
+        return !equalsBytes(this.codeHash, KECCAK256_NULL);
+    }
+    /**
+     * Returns a `Boolean` determining if the account is empty complying to the definition of
+     * account emptiness in [EIP-161](https://eips.ethereum.org/EIPS/eip-161):
+     * "An account is considered empty when it has no code and zero nonce and zero balance."
+     */
+    isEmpty() {
+        return this.balance === _0n && this.nonce === _0n && equalsBytes(this.codeHash, KECCAK256_NULL);
+    }
+}
+/**
+ * Checks if the address is a valid. Accepts checksummed addresses too.
+ */
+const isValidAddress = function (hexAddress) {
+    try {
+        assertIsString(hexAddress);
+    }
+    catch (e) {
+        return false;
+    }
+    return /^0x[0-9a-fA-F]{40}$/.test(hexAddress);
+};
+/**
+ * Returns a checksummed address.
+ *
+ * If an eip1191ChainId is provided, the chainId will be included in the checksum calculation. This
+ * has the effect of checksummed addresses for one chain having invalid checksums for others.
+ * For more details see [EIP-1191](https://eips.ethereum.org/EIPS/eip-1191).
+ *
+ * WARNING: Checksums with and without the chainId will differ and the EIP-1191 checksum is not
+ * backwards compatible to the original widely adopted checksum format standard introduced in
+ * [EIP-55](https://eips.ethereum.org/EIPS/eip-55), so this will break in existing applications.
+ * Usage of this EIP is therefore discouraged unless you have a very targeted use case.
+ */
+const toChecksumAddress = function (hexAddress, eip1191ChainId) {
+    assertIsHexString(hexAddress);
+    const address = stripHexPrefix(hexAddress).toLowerCase();
+    let prefix = '';
+    if (eip1191ChainId !== undefined) {
+        const chainId = bytesToBigInt(toBytes(eip1191ChainId));
+        prefix = chainId.toString() + '0x';
+    }
+    const bytes = utf8ToBytes(prefix + address);
+    const hash = bytesToHex(keccak256(bytes)).slice(2);
+    let ret = '0x';
+    for (let i = 0; i < address.length; i++) {
+        if (parseInt(hash[i], 16) >= 8) {
+            ret += address[i].toUpperCase();
+        }
+        else {
+            ret += address[i];
+        }
+    }
+    return ret;
+};
+/**
+ * Checks if the address is a valid checksummed address.
+ *
+ * See toChecksumAddress' documentation for details about the eip1191ChainId parameter.
+ */
+const isValidChecksumAddress = function (hexAddress, eip1191ChainId) {
+    return isValidAddress(hexAddress) && toChecksumAddress(hexAddress, eip1191ChainId) === hexAddress;
+};
+/**
+ * Generates an address of a newly created contract.
+ * @param from The address which is creating this new address
+ * @param nonce The nonce of the from account
+ */
+const generateAddress = function (from, nonce) {
+    assertIsBytes(from);
+    assertIsBytes(nonce);
+    if (bytesToBigInt(nonce) === BigInt(0)) {
+        // in RLP we want to encode null in the case of zero nonce
+        // read the RLP documentation for an answer if you dare
+        return keccak256(RLP.encode([from, Uint8Array.from([])])).subarray(-20);
+    }
+    // Only take the lower 160bits of the hash
+    return keccak256(RLP.encode([from, nonce])).subarray(-20);
+};
+/**
+ * Generates an address for a contract created using CREATE2.
+ * @param from The address which is creating this new address
+ * @param salt A salt
+ * @param initCode The init code of the contract being created
+ */
+const generateAddress2 = function (from, salt, initCode) {
+    assertIsBytes(from);
+    assertIsBytes(salt);
+    assertIsBytes(initCode);
+    if (from.length !== 20) {
+        throw new Error('Expected from to be of length 20');
+    }
+    if (salt.length !== 32) {
+        throw new Error('Expected salt to be of length 32');
+    }
+    const address = keccak256(concatBytes(hexToBytes('0xff'), from, salt, keccak256(initCode)));
+    return address.subarray(-20);
+};
+/**
+ * Checks if the private key satisfies the rules of the curve secp256k1.
+ */
+const isValidPrivate = function (privateKey) {
+    return secp256k1.utils.isValidPrivateKey(privateKey);
+};
+/**
+ * Checks if the public key satisfies the rules of the curve secp256k1
+ * and the requirements of Ethereum.
+ * @param publicKey The two points of an uncompressed key, unless sanitize is enabled
+ * @param sanitize Accept public keys in other formats
+ */
+const isValidPublic = function (publicKey, sanitize = false) {
+    assertIsBytes(publicKey);
+    if (publicKey.length === 64) {
+        // Convert to SEC1 for secp256k1
+        // Automatically checks whether point is on curve
+        try {
+            secp256k1.ProjectivePoint.fromHex(concatBytes(Uint8Array.from([4]), publicKey));
+            return true;
+        }
+        catch (e) {
+            return false;
+        }
+    }
+    if (!sanitize) {
+        return false;
+    }
+    try {
+        secp256k1.ProjectivePoint.fromHex(publicKey);
+        return true;
+    }
+    catch (e) {
+        return false;
+    }
+};
+/**
+ * Returns the ethereum address of a given public key.
+ * Accepts "Ethereum public keys" and SEC1 encoded keys.
+ * @param pubKey The two points of an uncompressed key, unless sanitize is enabled
+ * @param sanitize Accept public keys in other formats
+ */
+const pubToAddress = function (pubKey, sanitize = false) {
+    assertIsBytes(pubKey);
+    if (sanitize && pubKey.length !== 64) {
+        pubKey = secp256k1.ProjectivePoint.fromHex(pubKey).toRawBytes(false).slice(1);
+    }
+    if (pubKey.length !== 64) {
+        throw new Error('Expected pubKey to be of length 64');
+    }
+    // Only take the lower 160bits of the hash
+    return keccak256(pubKey).subarray(-20);
+};
+const publicToAddress = pubToAddress;
+/**
+ * Returns the ethereum public key of a given private key.
+ * @param privateKey A private key must be 256 bits wide
+ */
+const privateToPublic = function (privateKey) {
+    assertIsBytes(privateKey);
+    // skip the type flag and use the X, Y points
+    return secp256k1.ProjectivePoint.fromPrivateKey(privateKey).toRawBytes(false).slice(1);
+};
+/**
+ * Returns the ethereum address of a given private key.
+ * @param privateKey A private key must be 256 bits wide
+ */
+const privateToAddress = function (privateKey) {
+    return publicToAddress(privateToPublic(privateKey));
+};
+/**
+ * Converts a public key to the Ethereum format.
+ */
+const importPublic = function (publicKey) {
+    assertIsBytes(publicKey);
+    if (publicKey.length !== 64) {
+        publicKey = secp256k1.ProjectivePoint.fromHex(publicKey).toRawBytes(false).slice(1);
+    }
+    return publicKey;
+};
+/**
+ * Returns the zero address.
+ */
+const zeroAddress = function () {
+    const addressLength = 20;
+    const addr = zeros(addressLength);
+    return bytesToHex(addr);
+};
+/**
+ * Checks if a given address is the zero address.
+ */
+const isZeroAddress = function (hexAddress) {
+    try {
+        assertIsString(hexAddress);
+    }
+    catch (e) {
+        return false;
+    }
+    const zeroAddr = zeroAddress();
+    return zeroAddr === hexAddress;
+};
+function accountBodyFromSlim(body) {
+    const [nonce, balance, storageRoot, codeHash] = body;
+    return [
+        nonce,
+        balance,
+        storageRoot.length === 0 ? KECCAK256_RLP : storageRoot,
+        codeHash.length === 0 ? KECCAK256_NULL : codeHash,
+    ];
+}
+const emptyUint8Arr = new Uint8Array(0);
+function accountBodyToSlim(body) {
+    const [nonce, balance, storageRoot, codeHash] = body;
+    return [
+        nonce,
+        balance,
+        equalsBytes(storageRoot, KECCAK256_RLP) ? emptyUint8Arr : storageRoot,
+        equalsBytes(codeHash, KECCAK256_NULL) ? emptyUint8Arr : codeHash,
+    ];
+}
+/**
+ * Converts a slim account (per snap protocol spec) to the RLP encoded version of the account
+ * @param body Array of 4 Uint8Array-like items to represent the account
+ * @returns RLP encoded version of the account
+ */
+function accountBodyToRLP(body, couldBeSlim = true) {
+    const accountBody = couldBeSlim ? accountBodyFromSlim(body) : body;
+    return RLP.encode(accountBody);
+}
+
+/**
+ * Handling and generating Ethereum addresses
+ */
+class Address {
+    constructor(bytes) {
+        if (bytes.length !== 20) {
+            throw new Error('Invalid address length');
+        }
+        this.bytes = bytes;
+    }
+    /**
+     * Returns the zero address.
+     */
+    static zero() {
+        return new Address(zeros(20));
+    }
+    /**
+     * Returns an Address object from a hex-encoded string.
+     * @param str - Hex-encoded address
+     */
+    static fromString(str) {
+        if (!isValidAddress(str)) {
+            throw new Error('Invalid address');
+        }
+        return new Address(toBytes(str));
+    }
+    /**
+     * Returns an address for a given public key.
+     * @param pubKey The two points of an uncompressed key
+     */
+    static fromPublicKey(pubKey) {
+        if (!(pubKey instanceof Uint8Array)) {
+            throw new Error('Public key should be Uint8Array');
+        }
+        const bytes = pubToAddress(pubKey);
+        return new Address(bytes);
+    }
+    /**
+     * Returns an address for a given private key.
+     * @param privateKey A private key must be 256 bits wide
+     */
+    static fromPrivateKey(privateKey) {
+        if (!(privateKey instanceof Uint8Array)) {
+            throw new Error('Private key should be Uint8Array');
+        }
+        const bytes = privateToAddress(privateKey);
+        return new Address(bytes);
+    }
+    /**
+     * Generates an address for a newly created contract.
+     * @param from The address which is creating this new address
+     * @param nonce The nonce of the from account
+     */
+    static generate(from, nonce) {
+        if (typeof nonce !== 'bigint') {
+            throw new Error('Expected nonce to be a bigint');
+        }
+        return new Address(generateAddress(from.bytes, bigIntToBytes(nonce)));
+    }
+    /**
+     * Generates an address for a contract created using CREATE2.
+     * @param from The address which is creating this new address
+     * @param salt A salt
+     * @param initCode The init code of the contract being created
+     */
+    static generate2(from, salt, initCode) {
+        if (!(salt instanceof Uint8Array)) {
+            throw new Error('Expected salt to be a Uint8Array');
+        }
+        if (!(initCode instanceof Uint8Array)) {
+            throw new Error('Expected initCode to be a Uint8Array');
+        }
+        return new Address(generateAddress2(from.bytes, salt, initCode));
+    }
+    /**
+     * Is address equal to another.
+     */
+    equals(address) {
+        return equalsBytes(this.bytes, address.bytes);
+    }
+    /**
+     * Is address zero.
+     */
+    isZero() {
+        return this.equals(Address.zero());
+    }
+    /**
+     * True if address is in the address range defined
+     * by EIP-1352
+     */
+    isPrecompileOrSystemAddress() {
+        const address = bytesToBigInt(this.bytes);
+        const rangeMin = BigInt(0);
+        const rangeMax = BigInt('0xffff');
+        return address >= rangeMin && address <= rangeMax;
+    }
+    /**
+     * Returns hex encoding of address.
+     */
+    toString() {
+        return bytesToHex(this.bytes);
+    }
+    /**
+     * Returns a new Uint8Array representation of address.
+     */
+    toBytes() {
+        return new Uint8Array(this.bytes);
+    }
+}
+
+var KeyEncoding;
+(function (KeyEncoding) {
+    KeyEncoding["String"] = "string";
+    KeyEncoding["Bytes"] = "view";
+    KeyEncoding["Number"] = "number";
+})(KeyEncoding || (KeyEncoding = {}));
+var ValueEncoding;
+(function (ValueEncoding) {
+    ValueEncoding["String"] = "string";
+    ValueEncoding["Bytes"] = "view";
+    ValueEncoding["JSON"] = "json";
+})(ValueEncoding || (ValueEncoding = {}));
+
+/**
+ * Type output options
+ */
+var TypeOutput;
+(function (TypeOutput) {
+    TypeOutput[TypeOutput["Number"] = 0] = "Number";
+    TypeOutput[TypeOutput["BigInt"] = 1] = "BigInt";
+    TypeOutput[TypeOutput["Uint8Array"] = 2] = "Uint8Array";
+    TypeOutput[TypeOutput["PrefixedHexString"] = 3] = "PrefixedHexString";
+})(TypeOutput || (TypeOutput = {}));
+function toType(input, outputType) {
+    if (input === null) {
+        return null;
+    }
+    if (input === undefined) {
+        return undefined;
+    }
+    if (typeof input === 'string' && !isHexString(input)) {
+        throw new Error(`A string must be provided with a 0x-prefix, given: ${input}`);
+    }
+    else if (typeof input === 'number' && !Number.isSafeInteger(input)) {
+        throw new Error('The provided number is greater than MAX_SAFE_INTEGER (please use an alternative input type)');
+    }
+    const output = toBytes(input);
+    switch (outputType) {
+        case TypeOutput.Uint8Array:
+            return output;
+        case TypeOutput.BigInt:
+            return bytesToBigInt(output);
+        case TypeOutput.Number: {
+            const bigInt = bytesToBigInt(output);
+            if (bigInt > BigInt(Number.MAX_SAFE_INTEGER)) {
+                throw new Error('The provided number is greater than MAX_SAFE_INTEGER (please use an alternative output type)');
+            }
+            return Number(bigInt);
+        }
+        case TypeOutput.PrefixedHexString:
+            return bytesToHex(output);
+        default:
+            throw new Error('unknown outputType');
+    }
+}
+
+/**
+ * Representation of EIP-4895 withdrawal data
+ */
+class Withdrawal {
+    /**
+     * This constructor assigns and validates the values.
+     * Use the static factory methods to assist in creating a Withdrawal object from varying data types.
+     * Its amount is in Gwei to match CL representation and for eventual ssz withdrawalsRoot
+     */
+    constructor(index, validatorIndex, address, 
+    /**
+     * withdrawal amount in Gwei to match the CL repesentation and eventually ssz withdrawalsRoot
+     */
+    amount) {
+        this.index = index;
+        this.validatorIndex = validatorIndex;
+        this.address = address;
+        this.amount = amount;
+    }
+    static fromWithdrawalData(withdrawalData) {
+        const { index: indexData, validatorIndex: validatorIndexData, address: addressData, amount: amountData, } = withdrawalData;
+        const index = toType(indexData, TypeOutput.BigInt);
+        const validatorIndex = toType(validatorIndexData, TypeOutput.BigInt);
+        const address = addressData instanceof Address ? addressData : new Address(toBytes(addressData));
+        const amount = toType(amountData, TypeOutput.BigInt);
+        return new Withdrawal(index, validatorIndex, address, amount);
+    }
+    static fromValuesArray(withdrawalArray) {
+        if (withdrawalArray.length !== 4) {
+            throw Error(`Invalid withdrawalArray length expected=4 actual=${withdrawalArray.length}`);
+        }
+        const [index, validatorIndex, address, amount] = withdrawalArray;
+        return Withdrawal.fromWithdrawalData({ index, validatorIndex, address, amount });
+    }
+    /**
+     * Convert a withdrawal to a buffer array
+     * @param withdrawal the withdrawal to convert
+     * @returns buffer array of the withdrawal
+     */
+    static toBytesArray(withdrawal) {
+        const { index, validatorIndex, address, amount } = withdrawal;
+        const indexBytes = toType(index, TypeOutput.BigInt) === BigInt(0)
+            ? new Uint8Array()
+            : toType(index, TypeOutput.Uint8Array);
+        const validatorIndexBytes = toType(validatorIndex, TypeOutput.BigInt) === BigInt(0)
+            ? new Uint8Array()
+            : toType(validatorIndex, TypeOutput.Uint8Array);
+        const addressBytes = address instanceof Address ? address.bytes : toType(address, TypeOutput.Uint8Array);
+        const amountBytes = toType(amount, TypeOutput.BigInt) === BigInt(0)
+            ? new Uint8Array()
+            : toType(amount, TypeOutput.Uint8Array);
+        return [indexBytes, validatorIndexBytes, addressBytes, amountBytes];
+    }
+    raw() {
+        return Withdrawal.toBytesArray(this);
+    }
+    toValue() {
+        return {
+            index: this.index,
+            validatorIndex: this.validatorIndex,
+            address: this.address.bytes,
+            amount: this.amount,
+        };
+    }
+    toJSON() {
+        return {
+            index: bigIntToHex(this.index),
+            validatorIndex: bigIntToHex(this.validatorIndex),
+            address: bytesToHex(this.address.bytes),
+            amount: bigIntToHex(this.amount),
+        };
+    }
+}
+
+/**
+ * Returns the ECDSA signature of a message hash.
+ *
+ * If `chainId` is provided assume an EIP-155-style signature and calculate the `v` value
+ * accordingly, otherwise return a "static" `v` just derived from the `recovery` bit
+ */
+function ecsign(msgHash, privateKey, chainId) {
+    const sig = secp256k1.sign(msgHash, privateKey);
+    const buf = sig.toCompactRawBytes();
+    const r = buf.slice(0, 32);
+    const s = buf.slice(32, 64);
+    const v = chainId === undefined
+        ? BigInt(sig.recovery + 27)
+        : BigInt(sig.recovery + 35) + BigInt(chainId) * BigInt(2);
+    return { r, s, v };
+}
+function calculateSigRecovery(v, chainId) {
+    if (v === BigInt(0) || v === BigInt(1))
+        return v;
+    if (chainId === undefined) {
+        return v - BigInt(27);
+    }
+    return v - (chainId * BigInt(2) + BigInt(35));
+}
+function isValidSigRecovery(recovery) {
+    return recovery === BigInt(0) || recovery === BigInt(1);
+}
+/**
+ * ECDSA public key recovery from signature.
+ * NOTE: Accepts `v === 0 | v === 1` for EIP1559 transactions
+ * @returns Recovered public key
+ */
+const ecrecover = function (msgHash, v, r, s, chainId) {
+    const signature = concatBytes(setLengthLeft(r, 32), setLengthLeft(s, 32));
+    const recovery = calculateSigRecovery(v, chainId);
+    if (!isValidSigRecovery(recovery)) {
+        throw new Error('Invalid signature v value');
+    }
+    const sig = secp256k1.Signature.fromCompact(signature).addRecoveryBit(Number(recovery));
+    const senderPubKey = sig.recoverPublicKey(msgHash);
+    return senderPubKey.toRawBytes(false).slice(1);
+};
+/**
+ * Convert signature parameters into the format of `eth_sign` RPC method.
+ * NOTE: Accepts `v === 0 | v === 1` for EIP1559 transactions
+ * @returns Signature
+ */
+const toRpcSig = function (v, r, s, chainId) {
+    const recovery = calculateSigRecovery(v, chainId);
+    if (!isValidSigRecovery(recovery)) {
+        throw new Error('Invalid signature v value');
+    }
+    // geth (and the RPC eth_sign method) uses the 65 byte format used by Bitcoin
+    return bytesToHex(concatBytes(setLengthLeft(r, 32), setLengthLeft(s, 32), toBytes(v)));
+};
+/**
+ * Convert signature parameters into the format of Compact Signature Representation (EIP-2098).
+ * NOTE: Accepts `v === 0 | v === 1` for EIP1559 transactions
+ * @returns Signature
+ */
+const toCompactSig = function (v, r, s, chainId) {
+    const recovery = calculateSigRecovery(v, chainId);
+    if (!isValidSigRecovery(recovery)) {
+        throw new Error('Invalid signature v value');
+    }
+    const ss = Uint8Array.from([...s]);
+    if ((v > BigInt(28) && v % BigInt(2) === BigInt(1)) || v === BigInt(1) || v === BigInt(28)) {
+        ss[0] |= 0x80;
+    }
+    return bytesToHex(concatBytes(setLengthLeft(r, 32), setLengthLeft(ss, 32)));
+};
+/**
+ * Convert signature format of the `eth_sign` RPC method to signature parameters
+ *
+ * NOTE: For an extracted `v` value < 27 (see Geth bug https://github.com/ethereum/go-ethereum/issues/2053)
+ * `v + 27` is returned for the `v` value
+ * NOTE: After EIP1559, `v` could be `0` or `1` but this function assumes
+ * it's a signed message (EIP-191 or EIP-712) adding `27` at the end. Remove if needed.
+ */
+const fromRpcSig = function (sig) {
+    const bytes = toBytes(sig);
+    let r;
+    let s;
+    let v;
+    if (bytes.length >= 65) {
+        r = bytes.subarray(0, 32);
+        s = bytes.subarray(32, 64);
+        v = bytesToBigInt(bytes.subarray(64));
+    }
+    else if (bytes.length === 64) {
+        // Compact Signature Representation (https://eips.ethereum.org/EIPS/eip-2098)
+        r = bytes.subarray(0, 32);
+        s = bytes.subarray(32, 64);
+        v = BigInt(bytesToInt(bytes.subarray(32, 33)) >> 7);
+        s[0] &= 0x7f;
+    }
+    else {
+        throw new Error('Invalid signature length');
+    }
+    // support both versions of `eth_sign` responses
+    if (v < 27) {
+        v = v + BigInt(27);
+    }
+    return {
+        v,
+        r,
+        s,
+    };
+};
+/**
+ * Validate a ECDSA signature.
+ * NOTE: Accepts `v === 0 | v === 1` for EIP1559 transactions
+ * @param homesteadOrLater Indicates whether this is being used on either the homestead hardfork or a later one
+ */
+const isValidSignature = function (v, r, s, homesteadOrLater = true, chainId) {
+    if (r.length !== 32 || s.length !== 32) {
+        return false;
+    }
+    if (!isValidSigRecovery(calculateSigRecovery(v, chainId))) {
+        return false;
+    }
+    const rBigInt = bytesToBigInt(r);
+    const sBigInt = bytesToBigInt(s);
+    if (rBigInt === BigInt(0) ||
+        rBigInt >= SECP256K1_ORDER ||
+        sBigInt === BigInt(0) ||
+        sBigInt >= SECP256K1_ORDER) {
+        return false;
+    }
+    if (homesteadOrLater && sBigInt >= SECP256K1_ORDER_DIV_2) {
+        return false;
+    }
+    return true;
+};
+/**
+ * Returns the keccak-256 hash of `message`, prefixed with the header used by the `eth_sign` RPC call.
+ * The output of this function can be fed into `ecsign` to produce the same signature as the `eth_sign`
+ * call for a given `message`, or fed to `ecrecover` along with a signature to recover the public key
+ * used to produce the signature.
+ */
+const hashPersonalMessage = function (message) {
+    assertIsBytes(message);
+    const prefix = utf8ToBytes(`\u0019Ethereum Signed Message:\n${message.length}`);
+    return keccak256(concatBytes(prefix, message));
+};
+
+/**
+ * Ported to Typescript from original implementation below:
+ * https://github.com/ahultgren/async-eventemitter -- MIT licensed
+ *
+ * Type Definitions based on work by: patarapolw <https://github.com/patarapolw> -- MIT licensed
+ * that was contributed to Definitely Typed below:
+ * https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/async-eventemitter
+ */
+async function runInSeries(context, tasks, data) {
+    let error;
+    for await (const task of tasks) {
+        try {
+            if (task.length < 2) {
+                //sync
+                task.call(context, data);
+            }
+            else {
+                await new Promise((resolve, reject) => {
+                    task.call(context, data, (error) => {
+                        if (error) {
+                            reject(error);
+                        }
+                        else {
+                            resolve();
+                        }
+                    });
+                });
+            }
+        }
+        catch (e) {
+            error = e;
+        }
+    }
+    if (error) {
+        throw error;
+    }
+}
+class AsyncEventEmitter extends EventEmitter {
+    emit(event, ...args) {
+        let [data, callback] = args;
+        const self = this;
+        let listeners = self._events[event] ?? [];
+        // Optional data argument
+        if (callback === undefined && typeof data === 'function') {
+            callback = data;
+            data = undefined;
+        }
+        // Special treatment of internal newListener and removeListener events
+        if (event === 'newListener' || event === 'removeListener') {
+            data = {
+                event: data,
+                fn: callback,
+            };
+            callback = undefined;
+        }
+        // A single listener is just a function not an array...
+        listeners = Array.isArray(listeners) ? listeners : [listeners];
+        runInSeries(self, listeners.slice(), data).then(callback).catch(callback);
+        return self.listenerCount(event) > 0;
+    }
+    once(event, listener) {
+        const self = this;
+        let g;
+        if (typeof listener !== 'function') {
+            throw new TypeError('listener must be a function');
+        }
+        // Hack to support set arity
+        if (listener.length >= 2) {
+            g = function (e, next) {
+                self.removeListener(event, g);
+                void listener(e, next);
+            };
+        }
+        else {
+            g = function (e) {
+                self.removeListener(event, g);
+                void listener(e, g);
+            };
+        }
+        self.on(event, g);
+        return self;
+    }
+    first(event, listener) {
+        let listeners = this._events[event] ?? [];
+        // Contract
+        if (typeof listener !== 'function') {
+            throw new TypeError('listener must be a function');
+        }
+        // Listeners are not always an array
+        if (!Array.isArray(listeners)) {
+            ;
+            this._events[event] = listeners = [listeners];
+        }
+        listeners.unshift(listener);
+        return this;
+    }
+    before(event, target, listener) {
+        return this.beforeOrAfter(event, target, listener);
+    }
+    after(event, target, listener) {
+        return this.beforeOrAfter(event, target, listener, 'after');
+    }
+    beforeOrAfter(event, target, listener, beforeOrAfter) {
+        let listeners = this._events[event] ?? [];
+        let i;
+        let index;
+        const add = beforeOrAfter === 'after' ? 1 : 0;
+        // Contract
+        if (typeof listener !== 'function') {
+            throw new TypeError('listener must be a function');
+        }
+        if (typeof target !== 'function') {
+            throw new TypeError('target must be a function');
+        }
+        // Listeners are not always an array
+        if (!Array.isArray(listeners)) {
+            ;
+            this._events[event] = listeners = [listeners];
+        }
+        index = listeners.length;
+        for (i = listeners.length; i--;) {
+            if (listeners[i] === target) {
+                index = i + add;
+                break;
+            }
+        }
+        listeners.splice(index, 0, listener);
+        return this;
+    }
+    on(event, listener) {
+        return super.on(event, listener);
+    }
+    addListener(event, listener) {
+        return super.addListener(event, listener);
+    }
+    prependListener(event, listener) {
+        return super.prependListener(event, listener);
+    }
+    prependOnceListener(event, listener) {
+        return super.prependOnceListener(event, listener);
+    }
+    removeAllListeners(event) {
+        return super.removeAllListeners(event);
+    }
+    removeListener(event, listener) {
+        return super.removeListener(event, listener);
+    }
+    eventNames() {
+        return super.eventNames();
+    }
+    listeners(event) {
+        return super.listeners(event);
+    }
+    listenerCount(event) {
+        return super.listenerCount(event);
+    }
+    getMaxListeners() {
+        return super.getMaxListeners();
+    }
+    setMaxListeners(maxListeners) {
+        return super.setMaxListeners(maxListeners);
+    }
+}
+
+function kzgNotLoaded() {
+    throw Error('kzg library not loaded');
+}
+// eslint-disable-next-line import/no-mutable-exports
+let kzg = {
+    loadTrustedSetup: kzgNotLoaded,
+    blobToKzgCommitment: kzgNotLoaded,
+    computeBlobKzgProof: kzgNotLoaded,
+    verifyKzgProof: kzgNotLoaded,
+    verifyBlobKzgProofBatch: kzgNotLoaded,
+};
+/**
+ * @param kzgLib a KZG implementation (defaults to c-kzg)
+ * @param trustedSetupPath the full path (e.g. "/home/linux/devnet4.txt") to a kzg trusted setup text file
+ */
+function initKZG(kzgLib, trustedSetupPath) {
+    kzg = kzgLib;
+    kzg.loadTrustedSetup(trustedSetupPath);
+}
+
+/**
+ * These utilities for constructing blobs are borrowed from https://github.com/Inphi/eip4844-interop.git
+ */
+const BYTES_PER_FIELD_ELEMENT = 32;
+const FIELD_ELEMENTS_PER_BLOB = 4096;
+const USEFUL_BYTES_PER_BLOB = 32 * FIELD_ELEMENTS_PER_BLOB;
+const MAX_BLOBS_PER_TX = 2;
+const MAX_USEFUL_BYTES_PER_TX = USEFUL_BYTES_PER_BLOB * MAX_BLOBS_PER_TX - 1;
+const BLOB_SIZE = BYTES_PER_FIELD_ELEMENT * FIELD_ELEMENTS_PER_BLOB;
+function get_padded(data, blobs_len) {
+    const pdata = new Uint8Array(blobs_len * USEFUL_BYTES_PER_BLOB).fill(0);
+    pdata.set(data);
+    pdata[data.byteLength] = 0x80;
+    return pdata;
+}
+function get_blob(data) {
+    const blob = new Uint8Array(BLOB_SIZE);
+    for (let i = 0; i < FIELD_ELEMENTS_PER_BLOB; i++) {
+        const chunk = new Uint8Array(32);
+        chunk.set(data.subarray(i * 31, (i + 1) * 31), 0);
+        blob.set(chunk, i * 32);
+    }
+    return blob;
+}
+const getBlobs = (input) => {
+    const data = utf8ToBytes(input);
+    const len = data.byteLength;
+    if (len === 0) {
+        throw Error('invalid blob data');
+    }
+    if (len > MAX_USEFUL_BYTES_PER_TX) {
+        throw Error('blob data is too large');
+    }
+    const blobs_len = Math.ceil(len / USEFUL_BYTES_PER_BLOB);
+    const pdata = get_padded(data, blobs_len);
+    const blobs = [];
+    for (let i = 0; i < blobs_len; i++) {
+        const chunk = pdata.subarray(i * USEFUL_BYTES_PER_BLOB, (i + 1) * USEFUL_BYTES_PER_BLOB);
+        const blob = get_blob(chunk);
+        blobs.push(blob);
+    }
+    return blobs;
+};
+const blobsToCommitments = (blobs) => {
+    const commitments = [];
+    for (const blob of blobs) {
+        commitments.push(kzg.blobToKzgCommitment(blob));
+    }
+    return commitments;
+};
+const blobsToProofs = (blobs, commitments) => {
+    const proofs = blobs.map((blob, ctx) => kzg.computeBlobKzgProof(blob, commitments[ctx]));
+    return proofs;
+};
+/**
+ * Converts a vector commitment for a given data blob to its versioned hash.  For 4844, this version
+ * number will be 0x01 for KZG vector commitments but could be different if future vector commitment
+ * types are introduced
+ * @param commitment a vector commitment to a blob
+ * @param blobCommitmentVersion the version number corresponding to the type of vector commitment
+ * @returns a versioned hash corresponding to a given blob vector commitment
+ */
+const computeVersionedHash = (commitment, blobCommitmentVersion) => {
+    const computedVersionedHash = new Uint8Array(32);
+    computedVersionedHash.set([blobCommitmentVersion], 0);
+    computedVersionedHash.set(sha256(commitment).subarray(1), 1);
+    return computedVersionedHash;
+};
+/**
+ * Generate an array of versioned hashes from corresponding kzg commitments
+ * @param commitments array of kzg commitments
+ * @returns array of versioned hashes
+ * Note: assumes KZG commitments (version 1 version hashes)
+ */
+const commitmentsToVersionedHashes = (commitments) => {
+    const hashes = [];
+    for (const commitment of commitments) {
+        hashes.push(computeVersionedHash(commitment, 0x01));
+    }
+    return hashes;
+};
+
+/**
+ * Parses the geth genesis state into Blockchain {@link GenesisState}
+ * @param json representing the `alloc` key in a Geth genesis file
+ */
+function parseGethGenesisState(json) {
+    const state = {};
+    for (let address of Object.keys(json.alloc)) {
+        let { balance, code, storage, nonce } = json.alloc[address];
+        address = addHexPrefix(address);
+        balance = isHexPrefixed(balance) ? balance : bigIntToHex(BigInt(balance));
+        code = code !== undefined ? addHexPrefix(code) : undefined;
+        storage = storage !== undefined ? Object.entries(storage) : undefined;
+        nonce = nonce !== undefined ? addHexPrefix(nonce) : undefined;
+        state[address] = [balance, code, storage, nonce];
+    }
+    return state;
+}
+
+// Based on https://github.com/jsoendermann/semaphore-async-await/blob/master/src/Semaphore.ts
+class Lock {
+    constructor() {
+        this.permits = 1;
+        this.promiseResolverQueue = [];
+    }
+    /**
+     * Returns a promise used to wait for a permit to become available. This method should be awaited on.
+     * @returns  A promise that gets resolved when execution is allowed to proceed.
+     */
+    async acquire() {
+        if (this.permits > 0) {
+            this.permits -= 1;
+            return Promise.resolve(true);
+        }
+        // If there is no permit available, we return a promise that resolves once the semaphore gets
+        // signaled enough times that permits is equal to one.
+        return new Promise((resolver) => this.promiseResolverQueue.push(resolver));
+    }
+    /**
+     * Increases the number of permits by one. If there are other functions waiting, one of them will
+     * continue to execute in a future iteration of the event loop.
+     */
+    release() {
+        this.permits += 1;
+        if (this.permits > 1 && this.promiseResolverQueue.length > 0) {
+            // eslint-disable-next-line no-console
+            console.warn('Lock.permits should never be > 0 when there is someone waiting.');
+        }
+        else if (this.permits === 1 && this.promiseResolverQueue.length > 0) {
+            // If there is someone else waiting, immediately consume the permit that was released
+            // at the beginning of this function and let the waiting function resume.
+            this.permits -= 1;
+            const nextResolver = this.promiseResolverQueue.shift();
+            if (nextResolver) {
+                nextResolver(true);
+            }
+        }
+    }
+}
+
+class MapDB {
+    constructor(database) {
+        this._database = database ?? new Map();
+    }
+    async get(key) {
+        const dbKey = key instanceof Uint8Array ? bytesToUnprefixedHex(key) : key.toString();
+        return this._database.get(dbKey);
+    }
+    async put(key, val) {
+        const dbKey = key instanceof Uint8Array ? bytesToUnprefixedHex(key) : key.toString();
+        this._database.set(dbKey, val);
+    }
+    async del(key) {
+        const dbKey = key instanceof Uint8Array ? bytesToUnprefixedHex(key) : key.toString();
+        this._database.delete(dbKey);
+    }
+    async batch(opStack) {
+        for (const op of opStack) {
+            if (op.type === 'del') {
+                await this.del(op.key);
+            }
+            if (op.type === 'put') {
+                await this.put(op.key, op.value);
+            }
+        }
+    }
+    /**
+     * Note that the returned shallow copy will share the underlying database with the original
+     *
+     * @returns DB
+     */
+    shallowCopy() {
+        return new MapDB(this._database);
+    }
+    open() {
+        return Promise.resolve();
+    }
+}
+
+/**
+ * Makes a simple RPC call to a remote Ethereum JSON-RPC provider and passes through the response.
+ * No parameter or response validation is done.
+ *
+ * @param url the URL for the JSON RPC provider
+ * @param params the parameters for the JSON-RPC method - refer to
+ * https://ethereum.org/en/developers/docs/apis/json-rpc/ for details on RPC methods
+ * @returns the `result` field from the JSON-RPC response
+ */
+const fetchFromProvider = async (url, params) => {
+    const data = JSON.stringify({
+        method: params.method,
+        params: params.params,
+        jsonrpc: '2.0',
+        id: 1,
+    });
+    const res = await fetch(url, {
+        headers: {
+            'content-type': 'application/json',
+        },
+        method: 'POST',
+        body: data,
+    });
+    const json = await res.json();
+    return json.result;
+};
+/**
+ *
+ * @param provider a URL string or {@link EthersProvider}
+ * @returns the extracted URL string for the JSON-RPC Provider
+ */
+const getProvider = (provider) => {
+    if (typeof provider === 'string') {
+        return provider;
+    }
+    else if (typeof provider === 'object' && provider._getConnection !== undefined) {
+        return provider._getConnection().url;
+    }
+    else {
+        throw new Error('Must provide valid provider URL or Web3Provider');
+    }
+};
+
+/**
+ * Constants
+ */
+
+export { Account, Address, AsyncEventEmitter, GWEI_TO_WEI, KECCAK256_NULL, KECCAK256_NULL_S, KECCAK256_RLP, KECCAK256_RLP_ARRAY, KECCAK256_RLP_ARRAY_S, KECCAK256_RLP_S, KeyEncoding, Lock, MAX_INTEGER, MAX_INTEGER_BIGINT, MAX_UINT64, MAX_WITHDRAWALS_PER_PAYLOAD, MapDB, RIPEMD160_ADDRESS_STRING, RLP_EMPTY_STRING, SECP256K1_ORDER, SECP256K1_ORDER_DIV_2, TWO_POW256, TypeOutput, ValueEncoding, Withdrawal, accountBodyFromSlim, accountBodyToRLP, accountBodyToSlim, addHexPrefix, arrayContainsArray, bigIntToBytes, bigIntToHex, bigIntToUnpaddedBytes, blobsToCommitments, blobsToProofs, bytesToBigInt, bytesToHex, bytesToInt, bytesToUnprefixedHex, commitmentsToVersionedHashes, compareBytes, computeVersionedHash, concatBytes, ecrecover, ecsign, fetchFromProvider, fromAscii, fromRpcSig, fromSigned, fromUtf8, generateAddress, generateAddress2, getBinarySize, getBlobs, getKeys, getProvider, hashPersonalMessage, hexToBytes, importPublic, initKZG, intToBytes, intToHex, intToUnpaddedBytes, isHexPrefixed, isHexString, isValidAddress, isValidChecksumAddress, isValidPrivate, isValidPublic, isValidSignature, isZeroAddress, kzg, padToEven, parseGethGenesisState, privateToAddress, privateToPublic, pubToAddress, publicToAddress, randomBytes, setLengthLeft, setLengthRight, short, stripHexPrefix, toAscii, toBytes, toChecksumAddress, toCompactSig, toRpcSig, toType, toUnsigned, unpadArray, unpadBytes, unpadHex, unprefixedHexToBytes, validateNoLeadingZeroes, zeroAddress, zeros };
+
+//# sourceMappingURL=util@9.0.0.map

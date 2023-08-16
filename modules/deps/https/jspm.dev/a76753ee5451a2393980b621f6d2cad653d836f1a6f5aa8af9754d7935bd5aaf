@@ -1,0 +1,31 @@
+import '/npm:minimalistic-assert@1!cjs';
+import '/npm:inherits@2!cjs';
+import { e as exports$1 } from '../../../_/d70f5bf3.js';
+import _5 from './512!cjs';
+
+var exports = {};
+var utils = exports$1;
+var SHA512 = _5;
+
+function SHA384() {
+  if (!(this instanceof SHA384)) return new SHA384();
+  SHA512.call(this);
+  this.h = [3418070365, 3238371032, 1654270250, 914150663, 2438529370, 812702999, 355462360, 4144912697, 1731405415, 4290775857, 2394180231, 1750603025, 3675008525, 1694076839, 1203062813, 3204075428];
+}
+
+utils.inherits(SHA384, SHA512);
+exports = SHA384;
+SHA384.blockSize = 1024;
+SHA384.outSize = 384;
+SHA384.hmacStrength = 192;
+SHA384.padLength = 128;
+
+SHA384.prototype._digest = function digest(enc) {
+  if (enc === "hex") return utils.toHex32(this.h.slice(0, 12), "big");else return utils.split32(this.h.slice(0, 12), "big");
+};
+
+var _4 = exports;
+
+export default _4;
+
+//# sourceMappingURL=384!cjs.map

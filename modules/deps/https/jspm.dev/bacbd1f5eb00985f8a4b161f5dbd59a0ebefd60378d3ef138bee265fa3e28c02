@@ -1,0 +1,2 @@
+export * from "/npm:base64-js@1.5.1!cjs";
+export { default } from "/npm:base64-js@1.5.1!cjs";

@@ -1,0 +1,29 @@
+{
+  "headers": {
+    "access-control-expose-headers": "Content-Type",
+    "server": "CFS 0215",
+    "etag": "\"32e7ad9b3ad95cd63b957fc6d40d68da\"",
+    "cache-control": "public, max-age=31536000, s-maxage=604800, immutable",
+    "x-cf-rand": "82.880",
+    "x-cf2": "H",
+    "x-cf1": "29748:fE.waw1:co:1669825690:cacheN.waw1-01:M",
+    "expires": "Wed, 23 Aug 2023 07:42:47 GMT",
+    "x-cf-reqid": "d33776261331b66093cf67ede4d032dd",
+    "accept-ranges": "bytes",
+    "access-control-allow-origin": "*",
+    "cross-origin-resource-policy": "cross-origin",
+    "x-cf3": "M",
+    "x-cf-tsc": "1692171768",
+    "x-cff": "B",
+    "cf4ttl": "604800.000",
+    "content-type": "text/javascript; charset=utf-8",
+    "date": "Wed, 16 Aug 2023 08:04:58 GMT",
+    "cf4age": "0",
+    "last-modified": "Tue, 31 Jan 2023 01:41:19 GMT"
+  },
+  "url": "https://jspm.dev/npm:crc@4.3.2/calculators/crc81wire",
+  "now": {
+    "secs_since_epoch": 1692173098,
+    "nanos_since_epoch": 327016000
+  }
+}

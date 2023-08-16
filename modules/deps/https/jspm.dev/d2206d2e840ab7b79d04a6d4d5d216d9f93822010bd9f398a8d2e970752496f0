@@ -1,0 +1,2 @@
+import "/npm:@ethersproject/logger@5";
+export * from "/npm:@ethersproject/properties@5.7.0";

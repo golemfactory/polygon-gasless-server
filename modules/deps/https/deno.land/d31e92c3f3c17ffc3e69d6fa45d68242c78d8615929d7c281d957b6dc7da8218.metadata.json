@@ -1,0 +1,23 @@
+{
+  "headers": {
+    "x-deno-warning": "Implicitly using latest version (v0.11.1) for https://deno.land/x/web3/types/net.d.ts",
+    "via": "http/2 edgeproxy-h",
+    "cross-origin-opener-policy": "same-origin",
+    "server": "deno/gcp-europe-central2",
+    "x-content-type-options": "nosniff",
+    "access-control-allow-origin": "*",
+    "cross-origin-resource-policy": "same-origin",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "location": "/x/web3@v0.11.1/types/net.d.ts",
+    "vary": "accept",
+    "date": "Wed, 16 Aug 2023 08:04:53 GMT",
+    "x-frame-options": "DENY",
+    "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+    "cross-origin-embedder-policy": "same-origin"
+  },
+  "url": "https://deno.land/x/web3/types/net.d.ts",
+  "now": {
+    "secs_since_epoch": 1692173093,
+    "nanos_since_epoch": 858323000
+  }
+}

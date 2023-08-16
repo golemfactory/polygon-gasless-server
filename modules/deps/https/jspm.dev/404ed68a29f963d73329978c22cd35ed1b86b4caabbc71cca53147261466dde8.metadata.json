@@ -1,0 +1,29 @@
+{
+  "headers": {
+    "x-cf3": "M",
+    "content-type": "text/javascript; charset=utf-8",
+    "server": "CFS 0215",
+    "x-cf-tsc": "1692171767",
+    "cache-control": "public, max-age=200",
+    "x-cf1": "29748:fE.waw1:co:1669825690:cacheN.waw1-01:M",
+    "access-control-expose-headers": "Content-Type",
+    "cf4age": "0",
+    "cross-origin-resource-policy": "cross-origin",
+    "accept-ranges": "bytes",
+    "date": "Wed, 16 Aug 2023 08:04:57 GMT",
+    "x-cf-reqid": "c3f3c309dce7b1fdfcffaf32ec97bfeb",
+    "expires": "Wed, 16 Aug 2023 07:46:06 GMT",
+    "access-control-allow-origin": "*",
+    "cf4ttl": "200.000",
+    "x-cf2": "H",
+    "x-cf-rand": "7.396",
+    "etag": "\"98ce4993f8fa7ad86e35f3111fde0a98\"",
+    "x-cff": "B",
+    "last-modified": "Thu, 13 Jul 2023 02:54:47 GMT"
+  },
+  "url": "https://jspm.dev/npm:ethereum-cryptography@2/keccak.js",
+  "now": {
+    "secs_since_epoch": 1692173097,
+    "nanos_since_epoch": 664763000
+  }
+}

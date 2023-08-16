@@ -1,0 +1,4 @@
+// @deno-types="https://deno.land/x/web3@v0.9.2/packages/web3/types/index.d.ts"
+import Web3 from 'https://deno.land/x/web3@v0.9.2/packages/web3/src/index.js';
+export default Web3;
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImh0dHBzOi8vZGVuby5sYW5kL3gvd2ViM0B2MC4xMC4wL21vZC50cyJdLCJzb3VyY2VzQ29udGVudCI6WyIvLyBAZGVuby10eXBlcz1cImh0dHBzOi8vZGVuby5sYW5kL3gvd2ViM0B2MC45LjIvcGFja2FnZXMvd2ViMy90eXBlcy9pbmRleC5kLnRzXCJcbmltcG9ydCBXZWIzIGZyb20gJ2h0dHBzOi8vZGVuby5sYW5kL3gvd2ViM0B2MC45LjIvcGFja2FnZXMvd2ViMy9zcmMvaW5kZXguanMnO1xuXG5leHBvcnQgZGVmYXVsdCBXZWIzO1xuIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiJBQUFBLCtFQUErRTtBQUMvRSxPQUFPLFVBQVUsNkRBQTZEO0FBRTlFLGVBQWUsS0FBSyJ9

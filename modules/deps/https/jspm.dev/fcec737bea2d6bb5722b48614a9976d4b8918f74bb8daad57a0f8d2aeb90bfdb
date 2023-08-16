@@ -1,0 +1,8 @@
+import "/npm:bn.js@5";
+import "/npm:minimalistic-assert@1";
+import "/npm:inherits@2";
+import "/npm:hash.js@1.1.7";
+import "/npm:@ethersproject/bytes@5";
+import "/npm:@ethersproject/properties@5";
+import "/npm:@ethersproject/logger@5";
+export * from "/npm:@ethersproject/signing-key@5.7.0";

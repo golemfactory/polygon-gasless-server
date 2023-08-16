@@ -1,0 +1,9 @@
+import crc24$1 from './calculators/crc24';
+import { d as defineCrc } from './_/a7365c44.js';
+import '../npm:buffer';
+
+var crc24 = defineCrc('crc-24', crc24$1);
+
+export { crc24 as default };
+
+//# sourceMappingURL=crc24.map

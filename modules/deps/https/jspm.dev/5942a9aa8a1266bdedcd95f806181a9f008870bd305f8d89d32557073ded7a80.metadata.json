@@ -1,0 +1,31 @@
+{
+  "headers": {
+    "expires": "Wed, 16 Aug 2023 07:46:05 GMT",
+    "date": "Wed, 16 Aug 2023 08:04:56 GMT",
+    "cf4age": "0",
+    "last-modified": "Thu, 04 Jun 2020 02:53:50 GMT",
+    "x-cff": "B",
+    "access-control-allow-origin": "*",
+    "content-language": "en",
+    "x-cf-tsc": "1692171766",
+    "etag": "\"4d010b07bc152eec0bf631d014d0ebb5\"",
+    "cross-origin-resource-policy": "cross-origin",
+    "x-cf1": "29748:fE.waw1:co:1669825690:cacheN.waw1-01:M",
+    "x-cf2": "H",
+    "server": "CFS 0215",
+    "x-cf-rand": "56.374",
+    "cache-control": "public, max-age=200",
+    "vary": "X-Goog-Allowed-Resources",
+    "access-control-expose-headers": "Content-Type",
+    "cf4ttl": "200.000",
+    "x-cf-reqid": "ed424d0bbf06f60eff00f2f25f8849a4",
+    "x-cf3": "M",
+    "content-type": "application/javascript",
+    "accept-ranges": "bytes"
+  },
+  "url": "https://jspm.dev/scrypt-js",
+  "now": {
+    "secs_since_epoch": 1692173096,
+    "nanos_since_epoch": 83396000
+  }
+}

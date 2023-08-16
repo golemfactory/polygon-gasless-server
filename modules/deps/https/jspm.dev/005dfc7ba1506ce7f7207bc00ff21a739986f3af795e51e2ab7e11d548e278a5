@@ -1,0 +1,7 @@
+import "/npm:buffer@5!cjs";
+import "/npm:multihashes@0.4!cjs";
+import "/npm:multibase@0.6!cjs";
+import "/npm:multicodec@1!cjs";
+import "/npm:multicodec@1/src/base-table.json!cjs";
+import "/npm:class-is@1!cjs";
+export { default } from "/npm:cids@0.7.5!cjs";

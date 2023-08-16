@@ -1,0 +1,10 @@
+import "/npm:@ethersproject/bignumber@5";
+import "/npm:@ethersproject/properties@5";
+import "/npm:@ethersproject/logger@5";
+import "/npm:@ethersproject/bytes@5";
+import "/npm:@ethersproject/address@5";
+import "/npm:@ethersproject/constants@5";
+import "/npm:@ethersproject/strings@5";
+import "/npm:@ethersproject/hash@5";
+import "/npm:@ethersproject/keccak256@5";
+export * from "/npm:@ethersproject/abi@5.7.0";

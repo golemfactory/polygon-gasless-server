@@ -1,0 +1,5 @@
+import "/npm:js-sha3@0.5!cjs";
+import "/npm:idna-uts46-hx@2!cjs";
+import "/npm:@jspm/core@2/nodelibs/buffer";
+export * from "/npm:eth-ens-namehash@2.0.8!cjs";
+export { default } from "/npm:eth-ens-namehash@2.0.8!cjs";

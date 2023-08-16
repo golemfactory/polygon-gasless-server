@@ -1,0 +1,28 @@
+{
+  "headers": {
+    "x-cf-reqid": "32f460649972dbe5ae6319f1d43c3f24",
+    "x-cf2": "H",
+    "x-cf3": "H",
+    "server": "CFS 0215",
+    "x-cff": "B",
+    "cache-control": "public, max-age=31536000, s-maxage=604800, immutable",
+    "etag": "\"828c9da617b3a4befe6b3932750082a0\"",
+    "accept-ranges": "bytes",
+    "x-cf1": "29748:fE.waw1:co:1669825690:cacheN.waw1-01:M",
+    "access-control-expose-headers": "Content-Type",
+    "cf4ttl": "604800.000",
+    "access-control-allow-origin": "*",
+    "expires": "Sun, 20 Aug 2023 16:15:51 GMT",
+    "date": "Wed, 16 Aug 2023 08:04:58 GMT",
+    "last-modified": "Tue, 31 Jan 2023 01:41:19 GMT",
+    "x-cf-tsc": "1692171768",
+    "cf4age": "228415",
+    "cross-origin-resource-policy": "cross-origin",
+    "content-type": "text/javascript; charset=utf-8"
+  },
+  "url": "https://jspm.dev/npm:crc@4.3.2/calculators/crc16modbus",
+  "now": {
+    "secs_since_epoch": 1692173098,
+    "nanos_since_epoch": 500911000
+  }
+}

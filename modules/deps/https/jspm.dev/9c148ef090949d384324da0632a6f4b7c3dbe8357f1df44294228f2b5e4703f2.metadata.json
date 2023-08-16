@@ -1,0 +1,31 @@
+{
+  "headers": {
+    "content-language": "en",
+    "x-cf-tsc": "1692171766",
+    "access-control-allow-origin": "*",
+    "x-cf-rand": "90.941",
+    "x-cff": "B",
+    "access-control-expose-headers": "Content-Type",
+    "content-type": "application/javascript",
+    "cross-origin-resource-policy": "cross-origin",
+    "etag": "\"bf98aac8e342b77b199ef9e7c012ffef\"",
+    "server": "CFS 0215",
+    "x-cf3": "M",
+    "date": "Wed, 16 Aug 2023 08:04:56 GMT",
+    "x-cf1": "29748:fE.waw1:co:1669825690:cacheN.waw1-01:M",
+    "last-modified": "Thu, 04 Jun 2020 03:37:20 GMT",
+    "expires": "Wed, 16 Aug 2023 07:46:05 GMT",
+    "cache-control": "public, max-age=200",
+    "cf4age": "0",
+    "cf4ttl": "200.000",
+    "x-cf-reqid": "6393869731c5d8a0c06ec97c160e8578",
+    "x-cf2": "H",
+    "accept-ranges": "bytes",
+    "vary": "X-Goog-Allowed-Resources"
+  },
+  "url": "https://jspm.dev/eth-lib/lib/account",
+  "now": {
+    "secs_since_epoch": 1692173096,
+    "nanos_since_epoch": 79932000
+  }
+}

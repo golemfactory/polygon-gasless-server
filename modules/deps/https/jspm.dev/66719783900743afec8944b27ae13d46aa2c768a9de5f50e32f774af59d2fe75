@@ -1,0 +1,185 @@
+import _varint from '/npm:varint@5!cjs';
+import _baseTable from './npm:multicodec@0.5.7/src/base-table';
+import _buffer from '/npm:@jspm/core@2/nodelibs/buffer';
+import _util from './npm:multicodec@0.5.7/src/util!cjs';
+import _varintTable from './npm:multicodec@0.5.7/src/varint-table!cjs';
+
+var exports = {};
+const baseTable = _baseTable; // map for hexString -> codecName
+
+const nameTable = new Map();
+
+for (const encodingName in baseTable) {
+  const code = baseTable[encodingName];
+  nameTable.set(code, encodingName);
+}
+
+exports = Object.freeze(nameTable);
+var _intTable = exports;
+
+var exports$1 = {};
+const table = _baseTable; // map for codecConstant -> code
+
+const constants = {};
+
+for (const [name, code] of Object.entries(table)) {
+  constants[name.toUpperCase().replace(/-/g, "_")] = code;
+}
+
+exports$1 = Object.freeze(constants);
+var _constants = exports$1;
+
+var exports$2 = {};
+const table$1 = _baseTable; // map for code -> print friendly name
+
+const tableByCode = {};
+
+for (const [name, code] of Object.entries(table$1)) {
+  if (tableByCode[code] === undefined) tableByCode[code] = name;
+}
+
+exports$2 = Object.freeze(tableByCode);
+var _print = exports$2;
+
+var exports$3 = {};
+var Buffer = _buffer.Buffer;
+const varint = _varint;
+const intTable = _intTable;
+const codecNameToCodeVarint = _varintTable;
+const util = _util;
+exports$3 = exports$3;
+/**
+ * Prefix a buffer with a multicodec-packed.
+ *
+ * @param {string|number} multicodecStrOrCode
+ * @param {Buffer} data
+ * @returns {Buffer}
+ */
+
+exports$3.addPrefix = (multicodecStrOrCode, data) => {
+  let prefix;
+
+  if (Buffer.isBuffer(multicodecStrOrCode)) {
+    prefix = util.varintBufferEncode(multicodecStrOrCode);
+  } else {
+    if (codecNameToCodeVarint[multicodecStrOrCode]) {
+      prefix = codecNameToCodeVarint[multicodecStrOrCode];
+    } else {
+      throw new Error("multicodec not recognized");
+    }
+  }
+
+  return Buffer.concat([prefix, data]);
+};
+/**
+ * Decapsulate the multicodec-packed prefix from the data.
+ *
+ * @param {Buffer} data
+ * @returns {Buffer}
+ */
+
+
+exports$3.rmPrefix = data => {
+  varint.decode(data);
+  return data.slice(varint.decode.bytes);
+};
+/**
+ * Get the codec of the prefixed data.
+ * @param {Buffer} prefixedData
+ * @returns {string}
+ */
+
+
+exports$3.getCodec = prefixedData => {
+  const code = varint.decode(prefixedData);
+  const codecName = intTable.get(code);
+
+  if (codecName === undefined) {
+    throw new Error(`Code ${code} not found`);
+  }
+
+  return codecName;
+};
+/**
+ * Get the name of the codec.
+ * @param {number} codec
+ * @returns {string}
+ */
+
+
+exports$3.getName = codec => {
+  return intTable.get(codec);
+};
+/**
+ * Get the code of the codec
+ * @param {string} name
+ * @returns {number}
+ */
+
+
+exports$3.getNumber = name => {
+  const code = codecNameToCodeVarint[name];
+
+  if (code === undefined) {
+    throw new Error("Codec `" + name + "` not found");
+  }
+
+  return util.varintBufferDecode(code)[0];
+};
+/**
+ * Get the code of the prefixed data.
+ * @param {Buffer} prefixedData
+ * @returns {number}
+ */
+
+
+exports$3.getCode = prefixedData => {
+  return varint.decode(prefixedData);
+};
+/**
+ * Get the code as varint of a codec name.
+ * @param {string} codecName
+ * @returns {Buffer}
+ */
+
+
+exports$3.getCodeVarint = codecName => {
+  const code = codecNameToCodeVarint[codecName];
+
+  if (code === undefined) {
+    throw new Error("Codec `" + codecName + "` not found");
+  }
+
+  return code;
+};
+/**
+ * Get the varint of a code.
+ * @param {Number} code
+ * @returns {Array.<number>}
+ */
+
+
+exports$3.getVarint = code => {
+  return varint.encode(code);
+}; // Make the constants top-level constants
+
+
+const constants$1 = _constants;
+Object.assign(exports$3, constants$1); // Human friendly names for printing, e.g. in error messages
+
+exports$3.print = _print;
+var exports$4 = exports$3;
+const addPrefix = exports$3.addPrefix,
+      rmPrefix = exports$3.rmPrefix,
+      getCodec = exports$3.getCodec,
+      getName = exports$3.getName,
+      getNumber = exports$3.getNumber,
+      getCode = exports$3.getCode,
+      getCodeVarint = exports$3.getCodeVarint,
+      getVarint = exports$3.getVarint,
+      print = exports$3.print;
+
+export default exports$4;
+export { addPrefix, getCode, getCodeVarint, getCodec, getName, getNumber, getVarint, print, rmPrefix };
+
+//# sourceMappingURL=npm:multicodec@0.5.7!cjs.map

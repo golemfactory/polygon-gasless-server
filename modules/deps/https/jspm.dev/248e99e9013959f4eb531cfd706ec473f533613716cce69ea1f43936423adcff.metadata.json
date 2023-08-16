@@ -1,0 +1,29 @@
+{
+  "headers": {
+    "cache-control": "public, max-age=200",
+    "last-modified": "Sat, 12 Aug 2023 22:09:47 GMT",
+    "date": "Wed, 16 Aug 2023 08:04:57 GMT",
+    "access-control-expose-headers": "Content-Type",
+    "x-cf-rand": "42.010",
+    "cf4ttl": "200.000",
+    "cf4age": "0",
+    "x-cf-reqid": "924b317c3161cc91d9c5c3c5a8af3910",
+    "expires": "Wed, 16 Aug 2023 07:46:06 GMT",
+    "server": "CFS 0215",
+    "cross-origin-resource-policy": "cross-origin",
+    "x-cf1": "29748:fE.waw1:co:1669825690:cacheN.waw1-01:M",
+    "etag": "\"7b0fba134ca682833e6f6d8187afadfc\"",
+    "access-control-allow-origin": "*",
+    "x-cf3": "M",
+    "x-cff": "B",
+    "x-cf-tsc": "1692171767",
+    "x-cf2": "H",
+    "content-type": "text/javascript; charset=utf-8",
+    "accept-ranges": "bytes"
+  },
+  "url": "https://jspm.dev/npm:@ethereumjs/common@4",
+  "now": {
+    "secs_since_epoch": 1692173097,
+    "nanos_since_epoch": 917909000
+  }
+}

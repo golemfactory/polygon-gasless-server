@@ -1,4 +1,4 @@
-import { Application, log } from "./deps.ts";
+import { Application, log, oakCors } from "./deps.ts";
 
 //TODO : check if sender wallet is provided and throw if not
 

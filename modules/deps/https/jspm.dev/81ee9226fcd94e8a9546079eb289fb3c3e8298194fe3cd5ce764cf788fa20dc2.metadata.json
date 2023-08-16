@@ -1,0 +1,28 @@
+{
+  "headers": {
+    "cf4ttl": "604800.000",
+    "accept-ranges": "bytes",
+    "expires": "Sun, 20 Aug 2023 16:15:54 GMT",
+    "cross-origin-resource-policy": "cross-origin",
+    "x-cff": "B",
+    "x-cf3": "H",
+    "access-control-allow-origin": "*",
+    "x-cf-reqid": "a5c4648e6b172106b1bf356a1b965e69",
+    "access-control-expose-headers": "Content-Type",
+    "x-cf-tsc": "1692171769",
+    "date": "Wed, 16 Aug 2023 08:04:58 GMT",
+    "last-modified": "Sun, 04 Jun 2023 07:16:16 GMT",
+    "etag": "\"f8647a917d9273b622a9a0a20a33e086\"",
+    "content-type": "text/javascript; charset=utf-8",
+    "cf4age": "228413",
+    "server": "CFS 0215",
+    "x-cf2": "H",
+    "x-cf1": "29748:fE.waw1:co:1669825690:cacheN.waw1-01:M",
+    "cache-control": "public, max-age=31536000, s-maxage=604800, immutable"
+  },
+  "url": "https://jspm.dev/npm:@noble/hashes@1.3.1/_sha2",
+  "now": {
+    "secs_since_epoch": 1692173098,
+    "nanos_since_epoch": 910994000
+  }
+}

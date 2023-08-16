@@ -1,0 +1,6 @@
+import "/npm:buffer@5!cjs";
+import "/npm:multibase@0.7!cjs";
+import "/npm:varint@5!cjs";
+import "/npm:multihashes@0.4.21/src/constants!cjs";
+export * from "/npm:multihashes@0.4.21!cjs";
+export { default } from "/npm:multihashes@0.4.21!cjs";

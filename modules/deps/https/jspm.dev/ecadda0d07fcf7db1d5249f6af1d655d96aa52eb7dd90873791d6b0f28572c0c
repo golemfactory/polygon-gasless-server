@@ -1,0 +1,2 @@
+import EventEmitter from '/npm:eventemitter3@5.0.1!cjs';
+export { default as EventEmitter, default } from '/npm:eventemitter3@5.0.1!cjs';

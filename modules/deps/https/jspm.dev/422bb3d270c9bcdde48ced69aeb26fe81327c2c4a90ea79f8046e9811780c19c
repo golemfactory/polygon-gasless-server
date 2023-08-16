@@ -1,0 +1,2 @@
+import "/npm:es5-ext@0.10.62/_/d2db80e9.js";
+export { default } from "/npm:es5-ext@0.10.62/global!cjs";

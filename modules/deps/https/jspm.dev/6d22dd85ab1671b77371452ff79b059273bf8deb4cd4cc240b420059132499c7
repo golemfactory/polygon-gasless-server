@@ -1,0 +1,23 @@
+import _isHexPrefixed from '/npm:is-hex-prefixed@1.0.0!cjs';
+
+var exports = {};
+var isHexPrefixed = _isHexPrefixed;
+/**
+ * Removes '0x' from a given `String` is present
+ * @param {String} str the string value
+ * @return {String|Optional} a string by pass if necessary
+ */
+
+exports = function stripHexPrefix(str) {
+  if (typeof str !== "string") {
+    return str;
+  }
+
+  return isHexPrefixed(str) ? str.slice(2) : str;
+};
+
+var exports$1 = exports;
+
+export default exports$1;
+
+//# sourceMappingURL=npm:strip-hex-prefix@1.0.0!cjs.map

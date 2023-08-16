@@ -1,0 +1,5 @@
+import "/npm:global@4.4/window!cjs";
+import "/npm:is-function@1!cjs";
+import "/npm:parse-headers@2!cjs";
+import "/npm:xtend@4!cjs";
+export { default } from "/npm:xhr@2.6.0!cjs";

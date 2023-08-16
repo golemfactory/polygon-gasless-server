@@ -1,0 +1,9 @@
+import crc81wire$1 from './calculators/crc81wire';
+import { d as defineCrc } from './_/a7365c44.js';
+import '../npm:buffer';
+
+var crc81wire = defineCrc('dallas-1-wire', crc81wire$1);
+
+export { crc81wire as default };
+
+//# sourceMappingURL=crc81wire.map
