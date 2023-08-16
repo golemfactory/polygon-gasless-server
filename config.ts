@@ -25,17 +25,17 @@ async function getEnv(
   key: string,
   options?: { ask?: boolean; required?: boolean }
 ): Promise<string | undefined> {
-  let dotenvValue = getDotEnv(key);
-
+  let dotenvValue = await getDotEnv(key);
   let permissionStatus = await Deno.permissions.query({
     name: "env",
     variable: key,
   });
+
   if (
     permissionStatus.state === "prompt" &&
     (options?.ask || options?.required)
   ) {
-    dotenvValue = getDotEnv(key, options?.ask);
+    dotenvValue = await getDotEnv(key, options?.ask);
     if (!dotenvValue) {
       permissionStatus = await Deno.permissions.request({
         name: "env",
@@ -88,6 +88,7 @@ const web3 = setupWeb3Api(config.rpc);
   Mainnet = "0x0b220b82f3ea3b7f6d9a1d8ab58930c064a2b5bf";
   Mumbai = "0x2036807B0B3aaf5b1858EE822D0e111fDdac7018";
 */
+
 export const glm = contract(
   web3,
   config.contractAddress || "0x0b220b82f3ea3b7f6d9a1d8ab58930c064a2b5bf"
