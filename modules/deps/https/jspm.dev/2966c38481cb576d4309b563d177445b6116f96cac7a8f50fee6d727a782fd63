@@ -1,2 +1,0 @@
-export * from "/npm:bn.js@5.2.1!cjs";
-export { default } from "/npm:bn.js@5.2.1!cjs";

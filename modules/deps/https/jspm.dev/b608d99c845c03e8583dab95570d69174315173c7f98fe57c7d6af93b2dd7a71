@@ -1,3 +1,0 @@
-import "/npm:varint@5.0.2/decode.js!cjs";
-export * from "/npm:varint@5.0.2!cjs";
-export { default } from "/npm:varint@5.0.2!cjs";

@@ -1,4 +1,0 @@
-import "/npm:@jspm/core@2/nodelibs/buffer";
-import "/npm:inherits@2!cjs";
-import "/npm:hash-base@3!cjs";
-export { default } from "/npm:ripemd160@2.0.2!cjs";

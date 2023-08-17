@@ -1,1 +1,0 @@
-export { default } from "/npm:utf8@3.0.0!cjs";

@@ -1,9 +1,0 @@
-import crc32$1 from './calculators/crc32';
-import { d as defineCrc } from './_/a7365c44.js';
-import '../npm:buffer';
-
-var crc32 = defineCrc('crc-32', crc32$1);
-
-export { crc32 as default };
-
-//# sourceMappingURL=crc32.map

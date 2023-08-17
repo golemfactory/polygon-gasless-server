@@ -1,4 +1,0 @@
-import "/npm:@ethersproject/constants@5";
-import "/npm:@ethersproject/bytes@5";
-import "/npm:@ethersproject/logger@5";
-export * from "/npm:@ethersproject/strings@5.7.0";

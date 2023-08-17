@@ -1,2 +1,0 @@
-import "/npm:punycode@2.1.0!cjs";
-export { default } from "/npm:idna-uts46-hx@2.3.1!cjs";

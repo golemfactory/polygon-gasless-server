@@ -1,1 +1,0 @@
-export { default } from "/npm:url-set-query@1.0.0!cjs";

@@ -1,2 +1,0 @@
-import "/npm:@ethersproject/bytes@5";
-export * from "/npm:@ethersproject/base64@5.7.0";

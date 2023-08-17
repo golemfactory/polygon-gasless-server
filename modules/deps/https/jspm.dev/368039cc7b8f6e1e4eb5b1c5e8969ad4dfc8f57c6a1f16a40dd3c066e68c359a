@@ -1,9 +1,0 @@
-import crc32mpeg2$1 from './calculators/crc32mpeg2';
-import { d as defineCrc } from './_/a7365c44.js';
-import '../npm:buffer';
-
-var crc32mpeg2 = defineCrc('crc-32-mpeg', crc32mpeg2$1);
-
-export { crc32mpeg2 as default };
-
-//# sourceMappingURL=crc32mpeg2.map

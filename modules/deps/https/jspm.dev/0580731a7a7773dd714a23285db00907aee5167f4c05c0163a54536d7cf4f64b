@@ -1,3 +1,0 @@
-import "/npm:@jspm/core@2.0.1/_/cb95b980.js";
-export * from "/npm:@jspm/core@2.0.1/nodelibs/string_decoder";
-export { default } from "/npm:@jspm/core@2.0.1/nodelibs/string_decoder";

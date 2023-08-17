@@ -1,1 +1,0 @@
-export { default } from "/npm:decode-uri-component@0.2.2!cjs";

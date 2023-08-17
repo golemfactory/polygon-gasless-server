@@ -1,2 +1,0 @@
-export * from "/npm:oboe@2.1.5!cjs";
-export { default } from "/npm:oboe@2.1.5!cjs";

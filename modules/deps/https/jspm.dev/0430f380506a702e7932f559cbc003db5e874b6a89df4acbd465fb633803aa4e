@@ -1,5 +1,0 @@
-import "/npm:multicodec@0.5!cjs";
-import "/npm:cids@0.7!cjs";
-import "/npm:multihashes@0.4!cjs";
-import "/npm:@jspm/core@2/nodelibs/buffer";
-export { default } from "/npm:content-hash@2.5.2!cjs";

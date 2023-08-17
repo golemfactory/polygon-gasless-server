@@ -1,2 +1,0 @@
-export * from "/npm:class-is@1.1.0!cjs";
-export { default } from "/npm:class-is@1.1.0!cjs";

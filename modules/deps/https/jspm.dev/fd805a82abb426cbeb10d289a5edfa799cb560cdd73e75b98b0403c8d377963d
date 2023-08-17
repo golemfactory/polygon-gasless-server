@@ -1,9 +1,0 @@
-import crcjam$1 from './calculators/crcjam';
-import { d as defineCrc } from './_/a7365c44.js';
-import '../npm:buffer';
-
-var crcjam = defineCrc('jam', crcjam$1);
-
-export { crcjam as default };
-
-//# sourceMappingURL=crcjam.map

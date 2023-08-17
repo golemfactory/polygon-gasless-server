@@ -1,2 +1,0 @@
-export * from "/npm:@jspm/core@2.0.1/nodelibs/buffer";
-export { default } from "/npm:@jspm/core@2.0.1/nodelibs/buffer";

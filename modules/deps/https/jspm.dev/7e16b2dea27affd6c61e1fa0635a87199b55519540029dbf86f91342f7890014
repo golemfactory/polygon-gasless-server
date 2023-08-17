@@ -1,1 +1,0 @@
-export { default } from "/npm:object-assign@4.1.1!cjs";

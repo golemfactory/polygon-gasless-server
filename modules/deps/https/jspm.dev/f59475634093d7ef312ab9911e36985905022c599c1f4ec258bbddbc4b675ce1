@@ -1,3 +1,0 @@
-import "/npm:@jspm/core@2.0.1/_/8ddf35de.js";
-export * from "/npm:@jspm/core@2.0.1/nodelibs/events";
-export { default } from "/npm:@jspm/core@2.0.1/nodelibs/events";

@@ -1,1 +1,0 @@
-export { default } from "/npm:minimalistic-assert@1.0.1!cjs";

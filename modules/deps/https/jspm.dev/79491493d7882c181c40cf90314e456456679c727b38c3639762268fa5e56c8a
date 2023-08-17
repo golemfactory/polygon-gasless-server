@@ -1,9 +1,0 @@
-import crc16kermit$1 from './calculators/crc16kermit';
-import { d as defineCrc } from './_/a7365c44.js';
-import '../npm:buffer';
-
-var crc16kermit = defineCrc('kermit', crc16kermit$1);
-
-export { crc16kermit as default };
-
-//# sourceMappingURL=crc16kermit.map

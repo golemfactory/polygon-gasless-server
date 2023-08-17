@@ -1,5 +1,0 @@
-import "/npm:secp256k1@4!cjs";
-import "/npm:ethereum-cryptography@0.1.3/random!cjs";
-import "/npm:randombytes@2!cjs";
-export * from "/npm:ethereum-cryptography@0.1.3/secp256k1!cjs";
-export { default } from "/npm:ethereum-cryptography@0.1.3/secp256k1!cjs";

@@ -1,6 +1,0 @@
-import "/npm:query-string@5!cjs";
-import "/npm:url-set-query@1!cjs";
-import "/npm:object-assign@4!cjs";
-import "/npm:xhr@2!cjs";
-import "/npm:xhr-request@1.1.0/lib/request.js!cjs";
-export { default } from "/npm:xhr-request@1.1.0!cjs";

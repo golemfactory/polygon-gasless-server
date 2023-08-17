@@ -1,5 +1,0 @@
-import "/npm:safe-buffer@5!cjs";
-import "/npm:@jspm/core@2/nodelibs/stream";
-import "/npm:@jspm/core@2/nodelibs/string_decoder";
-import "/npm:inherits@2!cjs";
-export { default } from "/npm:cipher-base@1.0.4!cjs";

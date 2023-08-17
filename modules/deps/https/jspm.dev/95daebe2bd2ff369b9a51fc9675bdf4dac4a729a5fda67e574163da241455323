@@ -1,9 +1,0 @@
-import crc16modbus$1 from './calculators/crc16modbus';
-import { d as defineCrc } from './_/a7365c44.js';
-import '../npm:buffer';
-
-var crc16modbus = defineCrc('crc-16-modbus', crc16modbus$1);
-
-export { crc16modbus as default };
-
-//# sourceMappingURL=crc16modbus.map

@@ -1,5 +1,0 @@
-import "/npm:xhr-request@1!cjs";
-import "/npm:eth-lib@0.1/lib/bytes!cjs";
-import "/npm:swarm-js@0.1.42/_/b8bb9aa1.js";
-import "/npm:eth-lib@0.1/lib/hash!cjs";
-export { default } from "/npm:swarm-js@0.1.42!cjs";

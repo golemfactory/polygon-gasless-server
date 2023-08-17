@@ -1,4 +1,0 @@
-import "/npm:base64-js@1!cjs";
-import "/npm:ieee754@1!cjs";
-export * from "/npm:buffer@5.7.1!cjs";
-export { default } from "/npm:buffer@5.7.1!cjs";
